@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Multi-City Itinerary</title>
+    <style>
+        /* Global Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Form Styles */
+        .itinerary-creation-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .interests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .city-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .city-item:hover {
+            background-color: #f8f9fa;
+            border-color: #007bff;
+        }
+
+        .city-item input[type="checkbox"] {
+            margin-right: 10px;
+            transform: scale(1.2);
+        }
+
+        .city-item label {
+            margin: 0;
+            cursor: pointer;
+        }
+        
+        .interest-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+        }
+
+        .interest-item input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        .interest-item label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .date-inputs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .btn-create-itinerary {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-create-itinerary:hover {
+            background-color: #0056b3;
+        }
+
+        .help-text {
+            font-size: 14px;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .cities-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .date-inputs {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="itinerary-creation-container">
+            <h1>Create Your Multi-City Itinerary</h1>
+            
+            <form method="post" action="" class="itinerary-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="itinerary-name">Itinerary Name</label>
+                    <input type="text" id="itinerary-name" name="name" required placeholder="Enter a name for your itinerary">
+                </div>
+                
+                <div class="form-group">
+                    <label>Select Cities to Visit <span style="color: red;">*</span></label>
+                    <div class="cities-grid">
+                        <div class="city-item">
+                            <input type="checkbox" id="city_mumbai" name="cities" value="mumbai" checked>
+                            <label for="city_mumbai">Mumbai</label>
+                        </div>
+                        <div class="city-item">
+                            <input type="checkbox" id="city_chennai" name="cities" value="chennai" checked>
+                            <label for="city_chennai">Chennai</label>
+                        </div>
+                        <div class="city-item">
+                            <input type="checkbox" id="city_hyderabad" name="cities" value="hyderabad" checked>
+                            <label for="city_hyderabad">Hyderabad</label>
+                        </div>
+                        <div class="city-item">
+                            <input type="checkbox" id="city_gujarat" name="cities" value="gujarat" checked>
+                            <label for="city_gujarat">Gujarat</label>
+                        </div>
+                    </div>
+                    <div class="help-text">
+                        Select the cities you want to visit. We'll help you plan the best route.
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Trip Dates <span style="color: red;">*</span></label>
+                    <div class="date-inputs">
+                        <div>
+                            <label for="start_date">Start Date</label>
+                            <input type="date" id="start_date" name="start_date" required>
+                        </div>
+                        <div>
+                            <label for="end_date">End Date</label>
+                            <input type="date" id="end_date" name="end_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Transportation Preference</label>
+                    <select name="transportation_type" id="transportation_type" class="form-control">
+                        <option value="mixed">Mixed (Recommended)</option>
+                        <option value="car">Rental Car</option>
+                        <option value="public">Public Transportation</option>
+                        <option value="tour">Guided Tours</option>
+                        <option value="walk">Walking</option>
+                        <option value="bike">Biking</option>
+                    </select>
+                    <div class="help-text">
+                        Choose your preferred way to travel between attractions.
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Select Your Interests <span style="color: red;">*</span></label>
+                    <div class="interests-grid">
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="culture" id="interest_culture">
+                            <label for="interest_culture">Culture</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="adventure" id="interest_adventure">
+                            <label for="interest_adventure">Adventure</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="relaxation" id="interest_relaxation">
+                            <label for="interest_relaxation">Relaxation</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="food" id="interest_food">
+                            <label for="interest_food">Food</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="nature" id="interest_nature">
+                            <label for="interest_nature">Nature</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="shopping" id="interest_shopping">
+                            <label for="interest_shopping">Shopping</label>
+                        </div>
+                         <div class="interest-item">
+                            <input type="checkbox" name="interests" value="entertainment" id="interest_entertainment">
+                            <label for="interest_entertainment">Entertainment</label>
+                        </div>
+                    </div>
+                    <div class="help-text">
+                        Select at least one interest. We'll customize your itinerary based on your selections.
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="total_budget">Total Budget (Optional)</label>
+                    <input type="number" id="total_budget" name="total_budget" placeholder="Enter your budget amount">
+                    <div class="help-text">
+                        Enter your total trip budget in your local currency
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn-create-itinerary">
+                    Generate My Multi-City Itinerary
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set min dates to today
+            const today = new Date().toISOString().split('T')[0];
+            const startDateInput = document.getElementById('start_date');
+            const endDateInput = document.getElementById('end_date');
+            
+            startDateInput.min = today;
+            endDateInput.min = today;
+            
+            // Date validation
+            startDateInput.addEventListener('change', validateDates);
+            endDateInput.addEventListener('change', validateDates);
+            
+            function validateDates() {
+                const startDate = new Date(startDateInput.value);
+                const endDate = new Date(endDateInput.value);
+                
+                if (startDate > endDate) {
+                    alert('End date must be after start date');
+                    endDateInput.value = '';
+                }
+            }
+            
+            // Form validation
+            document.querySelector('.itinerary-form').addEventListener('submit', function(event) {
+                const selectedCities = document.querySelectorAll('input[name="cities"]:checked');
+                
+                if (selectedCities.length === 0) {
+                    event.preventDefault();
+                    alert('Please select at least one city for your itinerary');
+                }
+                
+                const selectedInterests = document.querySelectorAll('input[name="interests"]:checked');
+                if (selectedInterests.length === 0) {
+                    event.preventDefault();
+                    alert('Please select at least one interest for your itinerary');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

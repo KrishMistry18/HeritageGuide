@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Multi-City Itinerary</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .itinerary-detail-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-top: 20px;
+        }
+
+        .itinerary-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #eee;
+        }
+
+        .itinerary-header h1 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .trip-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .summary-item {
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            text-align: center;
+        }
+
+        .summary-item strong {
+            display: block;
+            color: #34495e;
+            margin-bottom: 5px;
+        }
+
+        .cities-section {
+            margin: 30px 0;
+        }
+
+        .cities-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .city-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .daily-itinerary {
+            margin-top: 40px;
+        }
+
+        .day-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .day-header {
+            background-color: #007bff;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .day-content {
+            padding: 20px;
+        }
+
+        .day-notes {
+            color: #666;
+            font-style: italic;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+
+        .activities-list {
+            margin-top: 20px;
+        }
+
+        .activity-item {
+            border-left: 4px solid #007bff;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 0 4px 4px 0;
+        }
+
+        .activity-time {
+            color: #007bff;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .activity-details {
+            margin-left: 15px;
+        }
+
+        .activity-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .transport-info {
+            margin-top: 10px;
+            padding: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .weather-info {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .book-slot-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 8px 18px;
+            background: #27ae60;
+            color: #fff;
+            border-radius: 6px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+        .book-slot-btn:hover {
+            background: #219150;
+        }
+
+        @media (max-width: 600px) {
+            .trip-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .cities-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .activity-meta {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="itinerary-detail-container">
+            <div class="itinerary-header">
+                <h1>{{ itinerary.name }}</h1>
+                <div class="trip-summary">
+                    <div class="summary-item">
+                        <strong>Start Date</strong>
+                        {{ itinerary.start_date|date:"M d, Y" }}
+                    </div>
+                    <div class="summary-item">
+                        <strong>End Date</strong>
+                        {{ itinerary.end_date|date:"M d, Y" }}
+                    </div>
+                    <div class="summary-item">
+                        <strong>Transportation</strong>
+                        {{ itinerary.transportation_type|default:"Mixed" }}
+                    </div>
+                    {% if itinerary.total_budget %}
+                    <div class="summary-item">
+                        <strong>Budget</strong>
+                        ${{ itinerary.total_budget }}
+                    </div>
+                    {% endif %}
+                    <div class="summary-item">
+                        <strong>Interests</strong>
+                        {{ itinerary.interests }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="cities-section">
+                <h2>Cities to Visit</h2>
+                <div class="cities-grid">
+                    {% for city in itinerary.cities.all %}
+                    <div class="city-card">
+                        <h3>{{ city.name }}</h3>
+                        {% if city.description %}
+                        <p>{{ city.description|truncatewords:20 }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="daily-itinerary">
+                <h2>Day-by-Day Schedule</h2>
+                {% for day in days %}
+                <div class="day-card">
+                    <div class="day-header">
+                        <span>Day {{ forloop.counter }} - {{ day.date|date:"l, M d, Y" }}</span>
+                        <span class="weather-info">
+                            <!-- Weather info could be added here -->
+                        </span>
+                    </div>
+                    <div class="day-content">
+                        {% if day.notes %}
+                        <div class="day-notes">
+                            <strong>Today's Plan:</strong> {{ day.notes }}
+                        </div>
+                        {% endif %}
+                        
+                        <div class="activities-list">
+                            {% for activity in day.activities.all %}
+                                <div class="activity-item">
+                                    {% if activity.start_time %}
+                                    <div class="activity-time">
+                                        {{ activity.start_time|time:"H:i" }}
+                                        {% if activity.end_time %} - {{ activity.end_time|time:"H:i" }}{% endif %}
+                                    </div>
+                                    {% endif %}
+                                    
+                                    <div class="activity-details">
+                                        {% if activity.attraction %}
+                                            <h4>{{ activity.attraction.name }}</h4>
+                                            <div class="activity-meta">
+                                                <span><strong>Type:</strong> {{ activity.attraction.get_type_display }}</span>
+                                                <span><strong>Duration:</strong> {{ activity.attraction.duration_minutes }} minutes</span>
+                                                {% if activity.attraction.rating %}
+                                                <span><strong>Rating:</strong> {{ activity.attraction.rating }}/5</span>
+                                                {% endif %}
+                                            </div>
+                                            <p>{{ activity.attraction.info|truncatewords:50 }}</p>
+                                            <div class="activity-meta">
+                                                <span><strong>Address:</strong> {{ activity.attraction.address }}</span>
+                                                {% if activity.attraction.opening_time and activity.attraction.closing_time %}
+                                                <span><strong>Hours:</strong> {{ activity.attraction.opening_time|time:"H:i" }} - {{ activity.attraction.closing_time|time:"H:i" }}</span>
+                                                {% endif %}
+                                            </div>
+                                        {% elif activity.custom_activity %}
+                                            <h4>{{ activity.custom_activity }}</h4>
+                                        {% endif %}
+                                        
+                                        {% if activity.notes %}
+                                        <div class="activity-notes">
+                                            <em>{{ activity.notes }}</em>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    {% if not forloop.last %}
+                                    <div class="transport-info">
+                                        <strong>Getting to next activity:</strong>
+                                        {% if itinerary.transportation_type %}
+                                            Via {{ itinerary.transportation_type }}
+                                        {% else %}
+                                            Transportation details will be provided
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            {% empty %}
+                                <p>No specific activities scheduled for this day. Feel free to explore the city at your own pace!</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% with first_attraction=day.activities.all.0.attraction %}
+                    {% if first_attraction %}
+                        <a href="{% url 'book_slot' first_attraction.id %}" class="book-slot-btn">Book Slot</a>
+                    {% endif %}
+                {% endwith %}
+                {% empty %}
+                    <p>No days planned for this itinerary yet.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

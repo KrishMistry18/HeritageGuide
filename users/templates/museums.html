@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Museums - HistoryGate</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        .museums-container {
+            margin-top: 80px;
+            padding: 20px;
+        }
+        
+        .museum-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .museum-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .museum-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .museum-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .museum-info {
+            padding: 15px;
+        }
+        
+        .museum-name {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .museum-description {
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .museum-details {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .book-button {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .book-button:hover {
+            background-color: #e6b800;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="museums-container">
+        <h1>Museums</h1>
+        <div class="museum-grid">
+            {% for museum in museums %}
+            <div class="museum-card">
+                <img src="{{ museum.image.url }}" alt="{{ museum.name }}" class="museum-image">
+                <div class="museum-info">
+                    <h2 class="museum-name">{{ museum.name }}</h2>
+                    <p class="museum-description">{{ museum.info|truncatewords:30 }}</p>
+                    <div class="museum-details">
+                        <span><i class="fas fa-clock"></i> {{ museum.opening_time|time:"g:i A" }} - {{ museum.closing_time|time:"g:i A" }}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> {{ museum.address }}</span>
+                    </div>
+                    <a href="{% url 'book_slot' museum.id %}" class="book-button">Book Visit</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% include 'footer.html' %}
+</body>
+</html> 

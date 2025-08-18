@@ -1,0 +1,16 @@
+# Environment Variables for Historify Project
+# Copy this file to .env and fill in your actual values
+
+# Google Maps API Key
+# Get your free API key from: https://developers.google.com/maps/documentation/javascript/get-api-key
+GOOGLE_MAPS_API_KEY=YOUR_GOOGLE_MAPS_API_KEY_HERE
+
+# Django Settings
+DEBUG=True
+SECRET_KEY=your-very-long-secret-key-here
+
+# OpenAI API Key (if using AI features)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Anthropic API Key (if using Claude features)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here 

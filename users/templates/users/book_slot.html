@@ -1,0 +1,88 @@
+{% extends "users/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Book Your Visit</h2>
+                </div>
+                <div class="card-body">
+                    {% if messages %}
+                        {% for message in messages %}
+                            <div class="alert alert-{{ message.tags }}">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if attraction %}
+                    <div class="attraction-details mb-4">
+                        <h4>{{ attraction.name }}</h4>
+                        <p class="text-muted">{{ attraction.get_type_display }} in {{ attraction.city.name }}</p>
+                        {% if attraction.image %}
+                            <img src="{{ attraction.image.url }}" alt="{{ attraction.name }}" class="img-fluid rounded mb-3" style="max-height: 200px; object-fit: cover;">
+                        {% endif %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>Address:</strong> {{ attraction.address }}</p>
+                                {% if attraction.opening_time and attraction.closing_time %}
+                                    <p><strong>Hours:</strong> {{ attraction.opening_time|time:"g:i A" }} - {{ attraction.closing_time|time:"g:i A" }}</p>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>Duration:</strong> {{ attraction.duration_minutes }} minutes</p>
+                                <p><strong>Rating:</strong> {{ attraction.rating }}/5.0</p>
+                            </div>
+                        </div>
+                        <hr>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.time_slot|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.number_of_people|as_crispy_field }}
+                            </div>
+                        </div>
+                        {{ form.attraction }}
+                        <div class="d-grid gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary">Book Now</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .attraction-details {
+        background-color: #f8f9fa;
+        padding: 20px;
+        border-radius: 8px;
+    }
+    
+    .attraction-details img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+    
+    .card {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+</style>
+{% endblock content %} 

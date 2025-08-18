@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/about.css' %}">
+{% endblock %}
+
+{% block content %}
+    <div class="about-img">
+        <h1 class="about-title"> Our Team</h1>
+    </div>
+
+    <div class="banner-container">
+        <div class="accent-bar">.</div>
+        <h1 class="main-heading">We're out here</h1>
+        <h2 class="subheading">Redefining the way you explore</h2>
+        <p class="description">
+          At HistoryGate, it is our motto to make more people aware about unheard/unseen monuments/museums which represent our history.
+        </p>
+        <a href="{% url 'contact' %}" class="contact-button">
+          <span class="button-text">Contact Us</span>
+        </a>
+    </div>
+
+    <section class="hero-section">
+      <div class="hero-content">
+            <h1 class="blue-title">2+ months of Project</h1>
+          <div class="blue-divider"></div>
+          <p class="hero-text">
+              Since Jan 2025, we have been working on a project with the idea 
+              to not only make a simple website but one which can educate a 
+              lot of people about our unknown history.
+          </p>
+          <p class="hero-text">
+              We have tried to implement ideas which can help us improve 
+              our knowledge of python along with frontend componenets like 
+              html and css.
+          </p>
+      </div>
+        <div class="hero-image"></div>
+  </section>
+
+  <div class="timeline-container">
+    <div class="year year-2022">JAN</div>
+    <div class="year year-2023">FEB</div>
+    <div class="year year-2024">MAR</div>
+
+    <div class="timeline-line">
+        <div class="nav-button prev-button">
+            <svg viewBox="0 0 24 24">
+                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+            </svg>
+        </div>
+
+        <div class="timeline-dot dot-2022"></div>
+        <div class="timeline-dot dot-2023"></div>
+        <div class="timeline-dot dot-2024"></div>
+
+        <div class="nav-button next-button">
+            <svg viewBox="0 0 24 24">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+        </div>
+    </div>
+
+    <div class="timeline-content">
+        <div class="content-box">
+            <p>Idea creation and learning implementation</p>
+        </div>
+        <div class="content-box">
+            <p>Expanded into project creation wth html and css frontend being developed.</p>
+        </div>
+        <div class="content-box">
+            <p>Piecing everything together with django and using sqlite for database use</p>
+        </div>
+    </div>
+  </div>
+
+  <div class="container">
+      <div class="header-divider"></div>
+      <h2 class="section-title">Why Choose Us?</h2>
+      
+      <div class="solutions-grid">
+          <div class="solution-card">
+              <div class="solution-image">
+                  <div class="solution-overlay">
+                      <h3 class="solution-title">Roamly-Ai Assitant</h3>
+                  </div>
+              </div>
+              <div class="solution-content">
+                  <p class="solution-text">Helps users learn more about monuments/museums with the help of a conversing ai bot</p>
+              </div>
+          </div>
+
+          <div class="solution-card">
+              <div class="solution-image">
+                  <div class="solution-overlay">
+                        <h3 class="solution-title">Sustainable & Smart Tourism 🌱</h3>
+                  </div>
+              </div>
+              <div class="solution-content">
+                  <p class="solution-text">Encourages off-peak hour bookings, reducing crowd congestion and 
+                        supports local tourism by showcasing underrated places.</p>
+              </div>
+          </div>
+
+          <div class="solution-card">
+              <div class="solution-image">
+                  <div class="solution-overlay">
+                      <h3 class="solution-title">Personalized Itinerary Suggestions 🛍️</h3>
+                  </div>
+              </div>
+              <div class="solution-content">
+                  <p class="solution-text">Suggests locations based on choices made by user and provides information on historical and cultural significance of monuments</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <div class="team-section-header">
+    <h1 class="sections-title">Meet Our Passionate Team</h1>
+    <p class="team-description">The creative minds behind HistoryGate working to connect you with hidden historical treasures</p>
+</div>
+
+<div class="our-container">
+    <section class="team-container">
+        <div class="team-grid">
+            <div class="team-member">
+                <div class="member-img"></div>
+                <div class="member-info">
+                    <h3 class="member-name">Sahil Ojha</h3>
+                    <p class="member-role">Project Head & Backend Developer</p>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-img"></div>
+                <div class="member-info">
+                    <h3 class="member-name">Atharva Nair</h3>
+                    <p class="member-role">Lead Frontend Developer</p>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-img"></div>
+                <div class="member-info">
+                    <h3 class="member-name">Krish Mistry</h3>
+                    <p class="member-role">Backend & Frontend Developer</p>
+                </div>
+            </div>
+            
+            <div class="team-member">
+                <div class="member-img"></div>
+                <div class="member-info">
+                    <h3 class="member-name">Oom Murkar</h3>
+                    <p class="member-role">Backend & Database Developer</p>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}

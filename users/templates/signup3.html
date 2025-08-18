@@ -1,0 +1,305 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load socialaccount %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="signup-card">
+                <div class="signup-header">
+                    <h2>Create Your Account</h2>
+                    <p class="text-muted">Join Historify to explore historical places</p>
+                </div>
+                
+                {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="social-login">
+                    <a href="{% provider_login_url 'google' %}?next=/" class="google-btn">
+                        <img src="https://www.google.com/favicon.ico" alt="Google">
+                        Continue with Google
+                    </a>
+                </div>
+
+                <div class="divider">
+                    <span>or sign up with email</span>
+                </div>
+
+                <form method="post" novalidate class="signup-form">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="{{ form.username.id_for_label }}">Username</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}
+                        <div class="error-message">
+                            {{ form.username.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.email.id_for_label }}">Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                        <div class="error-message">
+                            {{ form.email.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password1.id_for_label }}">Password</label>
+                        <div class="password-input">
+                            {{ form.password1 }}
+                            <button type="button" class="toggle-password" onclick="togglePassword('{{ form.password1.id_for_label }}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password1.errors %}
+                        <div class="error-message">
+                            {{ form.password1.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.password2.id_for_label }}">Confirm Password</label>
+                        <div class="password-input">
+                            {{ form.password2 }}
+                            <button type="button" class="toggle-password" onclick="togglePassword('{{ form.password2.id_for_label }}')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        {% if form.password2.errors %}
+                        <div class="error-message">
+                            {{ form.password2.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.birth_date.id_for_label }}">Birth Date</label>
+                        {{ form.birth_date }}
+                        {% if form.birth_date.errors %}
+                        <div class="error-message">
+                            {{ form.birth_date.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="{{ form.phone_number.id_for_label }}">Phone Number</label>
+                        {{ form.phone_number }}
+                        {% if form.phone_number.errors %}
+                        <div class="error-message">
+                            {{ form.phone_number.errors.0 }}
+                        </div>
+                        {% endif %}
+                    </div>
+                
+                    <button type="submit" class="signup-button">Create Account</button>
+                </form>
+
+                <div class="login-link">
+                    <p>Already have an account? <a href="{% url 'login' %}">Log in</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .signup-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    .signup-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .signup-header h2 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .signup-header p {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    .social-login {
+        margin-bottom: 1.5rem;
+    }
+
+    .google-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.75rem;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: #333;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .google-btn:hover {
+        background: #f5f5f5;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .google-btn img {
+        width: 20px;
+        height: 20px;
+    }
+
+    .divider {
+        display: flex;
+        align-items: center;
+        text-align: center;
+        margin: 1.5rem 0;
+        color: #7f8c8d;
+    }
+
+    .divider::before,
+    .divider::after {
+        content: '';
+        flex: 1;
+        border-bottom: 1px solid #e0e0e0;
+    }
+
+    .divider span {
+        padding: 0 1rem;
+        font-size: 0.9rem;
+    }
+
+    .signup-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .form-group label {
+        color: #2c3e50;
+        font-weight: 500;
+        font-size: 0.9rem;
+    }
+
+    .form-group input {
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-group input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        outline: none;
+    }
+
+    .password-input {
+        position: relative;
+    }
+
+    .toggle-password {
+        position: absolute;
+        right: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: #7f8c8d;
+        cursor: pointer;
+        padding: 0;
+    }
+
+    .error-message {
+        color: #e74c3c;
+        font-size: 0.85rem;
+        margin-top: 0.25rem;
+    }
+
+    .signup-button {
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .signup-button:hover {
+        background: #2980b9;
+    }
+
+    .login-link {
+        text-align: center;
+        margin-top: 1.5rem;
+        color: #7f8c8d;
+    }
+
+    .login-link a {
+        color: #3498db;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .login-link a:hover {
+        text-decoration: underline;
+    }
+
+    @media (max-width: 768px) {
+        .signup-card {
+            padding: 1.5rem;
+            margin: 1rem;
+        }
+    }
+</style>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.nextElementSibling.querySelector('i');
+    
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+</script>
+{% endblock %}

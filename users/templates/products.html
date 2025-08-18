@@ -1,0 +1,130 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Products - HistoryGate</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        .products-container {
+            margin-top: 80px;
+            padding: 20px;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .product-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 15px;
+        }
+        
+        .product-name {
+            font-size: 1.2em;
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .product-price {
+            color: #4CAF50;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+        
+        .product-description {
+            color: #ccc;
+            margin-bottom: 15px;
+            font-size: 0.9em;
+        }
+        
+        .add-to-cart {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        
+        .add-to-cart:hover {
+            background-color: #e6b800;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="products-container">
+        <h1>Shop</h1>
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="product-image">
+                <div class="product-info">
+                    <h2 class="product-name">{{ product.name }}</h2>
+                    <div class="product-price">${{ product.price }}</div>
+                    <p class="product-description">{{ product.description|truncatewords:20 }}</p>
+                    <button class="add-to-cart" data-product-id="{{ product.id }}">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% include 'footer.html' %}
+    
+    <script>
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', function() {
+                const productId = this.dataset.productId;
+                // Add AJAX call to add product to cart
+                fetch('/add-to-cart/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({
+                        product_id: productId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('Product added to cart!');
+                    } else {
+                        alert('Error adding product to cart');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html> 

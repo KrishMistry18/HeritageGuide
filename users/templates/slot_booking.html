@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Booking</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 50%;
+            margin: auto;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .booked {
+            background-color: red !important;
+        }
+        .slot-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Slot Booking System</h1>
+        
+        <h3>Available Slots</h3>
+        {% for slot in slots %}
+            <div class="slot-item">
+                <p>{{ slot.date }} - <span id="slot-{{ slot.id }}">{{ slot.total_slots }}</span> slots left</p>
+                <form method="get" action="/slots/">
+                    <input type="text" id="name-{{ slot.id }}" placeholder="Your Name">
+                    <button class="book-slot-btn" data-slot-id="{{ slot.id }}">Book Slot</button>
+                </form>
+            </div>
+        {% endfor %}
+
+        <h3>Your Bookings</h3>
+        <div id="bookings">
+            {% for booking in bookings %}
+                <p id="booking-{{ booking.id }}">{{ booking.user_name }} booked on {{ booking.slot.date }} 
+                    <button class="booked cancel-booking-btn" data-booking-id="{{ booking.id }}" data-slot-id="{{ booking.slot.id }}">Cancel</button>
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        // Add event listeners for book slot buttons
+        document.querySelectorAll('.book-slot-btn').forEach(button => {
+            button.addEventListener('click', function(e) {
+                e.preventDefault();
+                const slotId = this.dataset.slotId;
+                const userName = document.getElementById(`name-${slotId}`).value;
+                
+                if (userName === "") {
+                    alert("Please enter your name");
+                    return;
+                }
+
+                fetch("/book-slot/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCSRFToken() },
+                    body: `user_name=${userName}&slot_id=${slotId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`slot-${slotId}`).innerText = data.remaining_slots;
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            });
+        });
+
+        // Add event listeners for cancel booking buttons
+        document.querySelectorAll('.cancel-booking-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const bookingId = this.dataset.bookingId;
+                const slotId = this.dataset.slotId;
+
+                fetch("/cancel-booking/", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded", "X-CSRFToken": getCSRFToken() },
+                    body: `booking_id=${bookingId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById(`booking-${bookingId}`).remove();
+                        document.getElementById(`slot-${slotId}`).innerText = data.remaining_slots;
+                        alert(data.message);
+                    }
+                });
+            });
+        });
+
+        function getCSRFToken() {
+            return document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken'))
+                .split('=')[1];
+        }
+    </script>
+
+</body>
+</html>

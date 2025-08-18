@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+        <div class="reviews-container" id="reviewsContainer">
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">AK</div>
+                        <div>
+                            <span class="reviewer-name">Anita Kumar</span>
+                            <span class="review-date">March 15, 2024</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    HistoryGate made planning our family trip to Mumbai so much easier! The personalized itinerary feature helped us discover hidden gems we would have missed otherwise. The booking system was smooth and the historical insights were fascinating.
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified User</span>
+                    <span class="tag">Family Trip</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">RJ</div>
+                        <div>
+                            <span class="reviewer-name">Raj Sharma</span>
+                            <span class="review-date">March 10, 2024</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    As a history enthusiast, I love how HistoryGate combines historical information with modern booking convenience. The virtual guide feature and detailed monument descriptions helped me appreciate each site better. Excellent service!
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified User</span>
+                    <span class="tag">History Buff</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">SP</div>
+                        <div>
+                            <span class="reviewer-name">Sarah Patel</span>
+                            <span class="review-date">March 5, 2024</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    The multi-city tour planning feature is a game-changer! I could easily plan my cultural tour across Delhi and Mumbai. The AI chatbot Roamly was super helpful in answering my questions. Highly recommend for anyone interested in Indian heritage.
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified User</span>
+                    <span class="tag">Cultural Explorer</span>
+                </div>
+            </div>
+
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">MK</div>
+                        <div>
+                            <span class="reviewer-name">Mike Khan</span>
+                            <span class="review-date">February 28, 2024</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    The Pathfindr feature helped me create the perfect route for my weekend heritage walk. Love how the platform suggests the best times to visit each monument and provides real visitor reviews. The booking process was quick and hassle-free.
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified User</span>
+                    <span class="tag">Weekend Explorer</span>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            .reviews-container {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+                gap: 30px;
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .review {
+                background-color: #ffffff;
+                border-radius: 12px;
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+                padding: 25px;
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+                border-top: 4px solid #3498db;
+            }
+
+            .review:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            }
+
+            .review-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-bottom: 15px;
+            }
+
+            .reviewer-info {
+                display: flex;
+                align-items: center;
+            }
+
+            .avatar {
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background-color: #dfe6e9;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin-right: 12px;
+                font-weight: bold;
+                color: #3498db;
+                font-size: 20px;
+            }
+
+            .reviewer-name {
+                font-weight: bold;
+                font-size: 16px;
+                display: block;
+            }
+
+            .review-date {
+                color: #777;
+                font-size: 14px;
+                margin-top: 3px;
+            }
+
+            .review-rating {
+                display: flex;
+                margin: 15px 0;
+            }
+
+            .star {
+                color: #ffd700;
+                margin-right: 4px;
+                font-size: 20px;
+                text-shadow: 0 0 1px rgba(0,0,0,0.3);
+            }
+
+            .review-text {
+                line-height: 1.6;
+                color: #333;
+                font-size: 16px;
+                border-left: 4px solid #3498db;
+                padding-left: 15px;
+                margin: 15px 0;
+            }
+
+            .review-tags {
+                display: flex;
+                flex-wrap: wrap;
+                margin-top: 15px;
+            }
+
+            .tag {
+                background-color: #ecf0f1;
+                color: #7f8c8d;
+                padding: 4px 10px;
+                border-radius: 20px;
+                font-size: 12px;
+                margin-right: 8px;
+                margin-bottom: 8px;
+            }
+
+            .verified {
+                background-color: #e3f7ed;
+                color: #1abc9c;
+            }
+        </style>
+{% endblock %} 

@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HistoryGate - Interactive Location Map</title>
+    <!-- Leaflet CSS (fallback map when Google Maps is unavailable) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2c3e50;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, hsl(252, 85%, 93%) 0%, hsl(228, 100%, 95%) 100%);
+            color: var(--dark);
+            min-height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5%;
+            background-color: #222;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width:97%;
+            margin-top:1.5%;
+            margin-left:1%;
+            border-radius: 50px;
+        }
+        
+        .nav-items {
+            display: flex;
+            margin-left:35%;
+            background-color:transparent;
+            border-radius: 100px;
+            padding: 0.6rem 1.2rem;
+        }
+        
+        .nav-items a {
+            color: #a9a9a9;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.4rem 1rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-items a:hover {
+            color: #ffffff;
+        }
+        
+        .cta-button {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cta-button:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* Style for the Account Button */
+.account {
+    background-color: transparent; /* Transparent background */
+    border-radius: 50%; /* Circular shape */
+    width: 40px; /* Fixed size */
+    height: 40px; /* Fixed size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-top:0%;
+}
+
+/* Style for the Icon inside the Button */
+.account i {
+    font-size: 24px; /* Adjust icon size */
+    color: white; /* White color */
+}
+
+/* Hover Effect */
+.account:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Light background effect */
+    border-color: #ffcc00; /* Yellow border on hover */
+}
+
+/* Click Effect */
+.account:active {
+    transform: scale(0.95); /* Slight shrink effect */
+}
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+    padding: 8px 0;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-item {
+    color: black;
+    padding: 8px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown-item-text {
+    padding: 8px 16px;
+    font-weight: 500;
+    color: #555;
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: 4px 0;
+    background-color: #e5e5e5;
+    border: none;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+        
+        main {
+            display: flex;
+            flex: 1;
+            padding: 20px;
+            margin-top: 20px;
+        }
+        
+        .sidebar {
+            width: 350px;
+            background-color: white;
+            box-shadow: var(--shadow);
+            padding: 1.5rem;
+            z-index: 5;
+            overflow-y: auto;
+            border-radius: 10px;
+            margin-right: 20px;
+        }
+        
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .search-box {
+            display: flex;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border: 1px solid #ddd;
+            border-right: none;
+            font-size: 1rem;
+        }
+        
+        .search-btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0 1rem;
+            cursor: pointer;
+        }
+        
+        .routes-container {
+            margin-bottom: 1.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .route-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 2.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+        
+        .input-icon {
+            position: absolute;
+            left: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #777;
+        }
+        
+        .swap-btn {
+            align-self: center;
+            background-color: #f1f1f1;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .swap-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .transport-options {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .transport-option {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            flex: 1;
+        }
+        
+        .transport-option.active {
+            border-color: var(--primary);
+            background-color: rgba(52, 152, 219, 0.1);
+            color: var(--primary);
+        }
+        
+        .transport-option:hover {
+            border-color: var(--primary);
+        }
+        
+        .map-container {
+            flex: 1;
+            height: 600px;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+        
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .map-controls {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .map-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 4px;
+            background-color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .map-btn:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .layer-controls {
+            position: absolute;
+            bottom: 1rem;
+            left: 1rem;
+            background-color: white;
+            border-radius: 4px;
+            padding: 0.5rem;
+            box-shadow: var(--shadow);
+        }
+        
+        .layer-btn {
+            padding: 0.5rem 1rem;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+        }
+        
+        .layer-btn.active {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        
+        .layer-btn:hover {
+            color: var(--primary);
+        }
+        
+        .directions-panel {
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: var(--shadow);
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .map-description {
+            margin: 30px 0;
+            line-height: 1.6;
+            text-align: center;
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        footer {
+            background-color: #0D1117;
+            color: white;
+            padding: 40px 20px;
+            margin-top: 30px;
+        }
+        
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2A2D32;
+        }
+        
+        .footer-section {
+            flex: 1;
+            min-width: 150px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+        
+        .footer-section h3 {
+            font-size: 14px;
+            color: #8B949E;
+            margin-bottom: 15px;
+        }
+        
+        .footer-section a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-section a:hover {
+            color: #58A6FF;
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            margin-top: 20px;
+            padding: 0 15px;
+        }
+        
+        .footer-bottom p {
+            font-size: 14px;
+            color: #8B949E;
+            margin: 5px 0;
+        }
+        
+        .footer-bottom a {
+            color: #58A6FF;
+            text-decoration: none;
+        }
+        
+        .social-icons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .social-icons a {
+            margin: 5px;
+            color: #8B949E;
+            text-decoration: none;
+        }
+        
+        .social-icons a:hover {
+            color: #58A6FF;
+        }
+        
+        /* Marker list styles */
+        .markers-section {
+            margin-top: 1.5rem;
+        }
+        
+        .marker-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .marker-item {
+            padding: 0.8rem 1rem;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .marker-item:last-child {
+            border-bottom: none;
+        }
+        
+        .marker-item:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .marker-item.active {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+        
+        .marker-tools {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .marker-tool-btn {
+            padding: 8px 12px;
+            background-color: #f1f1f1;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.3s;
+        }
+        
+        .marker-tool-btn:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .marker-tool-btn.active {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .custom-marker-form {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .custom-marker-form.show {
+            display: block;
+        }
+        
+        .custom-marker-form input, 
+        .custom-marker-form select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        /* Route preferences section */
+        .route-preferences {
+            margin-top: 15px;
+            background-color: #f9f9f9;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        
+        .preferences-title {
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+        
+        .preference-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .preference-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.8rem;
+        }
+        
+        /* Responsive styles */
+        @media screen and (max-width: 768px) {
+            main {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 20px;
+            }
+            
+            .footer-container {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .footer-section {
+                width: 100%;
+                margin-bottom: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-container">
+            <div class="nav-items">
+                <a href="{% url 'index' %}">Home</a>
+                <a href="{% url 'about'%}">About us</a>
+                <a href="{% url 'map' %}">Map</a>
+                <a href="{% url 'itinerary_create' %}">Pathfindr</a>
+                <a href="{% url 'chatbot' %}">Roamly</a>
+            </div>
+              
+            {% if user.is_authenticated %}
+                <div class="dropdown">
+                    <button class="account dropdown-toggle" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-person"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                        <li class="dropdown-item-text">Logged in as: {{ user.username }}</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{% url 'account' %}">My Account</a></li>
+                        <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                    </ul>
+                </div>
+            {% else %}
+            <a href="{% url 'signup' %}" class="cta-button">
+              Sign Up
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M8 1L15 8L8 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M1 8H15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </a>
+            {% endif %}
+        </div>  
+
+        <main>
+            <aside class="sidebar">
+                <div class="search-container">
+                    <div class="search-box">
+                        <input type="text" id="location-search" class="search-input" placeholder="Search locations...">
+                        <button class="search-btn" id="search-btn">🔍</button>
+                    </div>
+                </div>
+                
+                <div class="routes-container">
+                    <h3 class="section-title">
+                        <span>🚗</span> Directions
+                    </h3>
+                    <div class="route-form">
+                        <div class="input-group">
+                            <span class="input-icon">A</span>
+                            <input type="text" id="start" placeholder="Starting point">
+                        </div>
+                        
+                        <button class="swap-btn" id="swap-locations">⇅</button>
+                        
+                        <div class="input-group">
+                            <span class="input-icon">B</span>
+                            <input type="text" id="end" placeholder="Destination">
+                        </div>
+                        
+                        <div class="transport-options">
+                            <div class="transport-option active" data-mode="DRIVING" title="Driving">🚗</div>
+                            <div class="transport-option" data-mode="WALKING" title="Walking">🚶</div>
+                            <div class="transport-option" data-mode="BICYCLING" title="Cycling">🚲</div>
+                            <div class="transport-option" data-mode="TRANSIT" title="Public Transit">🚌</div>
+                        </div>
+                        
+                        <!-- Route preferences section -->
+                        <div class="route-preferences">
+                            <div class="preferences-title">Route Preferences:</div>
+                            <div class="preference-options">
+                                <label class="preference-option">
+                                    <input type="checkbox" id="pref-avoid-tolls"> Avoid Tolls
+                                </label>
+                                <label class="preference-option">
+                                    <input type="checkbox" id="pref-avoid-highways"> Avoid Highways
+                                </label>
+                                <label class="preference-option">
+                                    <input type="checkbox" id="pref-avoid-ferries"> Avoid Ferries
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="get-directions-btn" style="padding: 0.8rem; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">Get Directions</button>
+                    </div>
+                </div>
+                
+                <!-- Historical Points Section -->
+                <div class="markers-section">
+                    <h3 class="section-title">
+                        <span>📍</span> Points of Interest
+                    </h3>
+                    
+                    <div class="marker-tools">
+                        <button class="marker-tool-btn active" id="show-all-btn">Show All</button>
+                        <button class="marker-tool-btn" id="add-marker-btn">Add Custom</button>
+                        <select id="marker-filter" style="padding: 8px; border-radius: 4px; border: 1px solid #ddd; font-size: 0.8rem;">
+                            <option value="all">All Categories</option>
+                            <option value="historic">Historic Sites</option>
+                            <option value="museum">Museums</option>
+                            <option value="monument">Monuments</option>
+                            <option value="restaurant">Restaurants</option>
+                            <option value="hotel">Hotels</option>
+                            <option value="custom">Custom Markers</option>
+                        </select>
+                    </div>
+                    
+                    <div class="custom-marker-form" id="custom-marker-form">
+                        <input type="text" id="marker-title" placeholder="Title">
+                        <input type="text" id="marker-description" placeholder="Description">
+                        <select id="marker-category">
+                            <option value="historic">Historic Site</option>
+                            <option value="museum">Museum</option>
+                            <option value="monument">Monument</option>
+                            <option value="restaurant">Restaurant</option>
+                            <option value="hotel">Hotel</option>
+                            <option value="custom">Other</option>
+                        </select>
+                        <button id="save-marker-btn" style="padding: 8px; background-color: var(--primary); color: white; border: none; border-radius: 4px; cursor: pointer; width: 100%;">Save</button>
+                    </div>
+                    
+                    <div class="marker-list" id="marker-list">
+                        <!-- Marker items will be inserted here dynamically -->
+                    </div>
+                </div>
+                
+                <div id="directions-panel" class="directions-panel"></div>
+            </aside>
+            
+            <div class="map-container">
+                <div id="map"></div>
+                
+                <div class="map-controls">
+                    <button class="map-btn" id="zoom-in" title="Zoom In">➕</button>
+                    <button class="map-btn" id="zoom-out" title="Zoom Out">➖</button>
+                    <button class="map-btn" id="current-location" title="My Location">📍</button>
+                    <button class="map-btn" id="clear-map" title="Clear Map">🗑️</button>
+                    <button class="map-btn" id="draw-route" title="Draw Route">✏️</button>
+                </div>
+                
+                <div class="layer-controls">
+                    <button class="layer-btn active" data-type="roadmap">Map</button>
+                    <button class="layer-btn" data-type="satellite">Satellite</button>
+                    <button class="layer-btn" data-type="hybrid">Hybrid</button>
+                    <button class="layer-btn" data-type="terrain">Terrain</button>
+                </div>
+            </div>
+        </main>
+        
+        <div class="map-description">
+            <p>Explore the rich historical landscape of Mumbai. Visit the St. Francis Institute of Technology and other cultural landmarks with our interactive map and custom directions.</p>
+        </div>
+        
+        <footer>
+            <div class="footer-container">
+                <div class="footer-section">
+                    <h3>COMPANY</h3>
+                    <a href="#">About</a>   
+                    <a href="#">Blog</a>
+                    <a href="#">Community</a>
+                    <a href="#">Help Center</a>
+                </div>
+
+                <div class="footer-section">
+                    <h3>LINKS</h3>
+                    <a href="#">Home</a>
+                    <a href="#">Monuments</a>
+                    <a href="#">Museums</a>
+                </div>
+
+                <div class="footer-section">
+                    <h3>LINKS</h3>
+                    <a href="#">Events</a>
+                    <a href="#">Private Itineraries</a>
+                    <a href="#">Map</a>
+                </div>
+
+                <div class="footer-section">
+                    <h3>SUBSCRIPTION</h3>
+                    <a href="#">Emails</a>
+                    <a href="#">Messages</a>    
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2025 HistoryGate Inc. <a href="#">Terms</a> <a href="#">Privacy Policy</a></p>
+                <p>Made in Mumbai, India</p>
+                <div class="social-icons">
+                    <a href="https://instagram.com"><i class="bi bi-instagram"></i></a>
+                    <a href="https://twitter.com"><i class="bi bi-twitter"></i></a>
+                    <a href="https://youtube.com"><i class="bi bi-youtube"></i></a>
+                    <a href="https://linkedin.com"><i class="bi bi-linkedin"></i></a>
+                    <a href="https://discord.com"><i class="bi bi-discord"></i></a>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Initialize and add the map
+        function initMap() {
+            // The location of St. Francis Institute of Technology as the center
+            const centerPoint = { lat: 19.243711, lng: 72.853084 };
+            
+            // Define predefined historical and notable locations with their information
+            const predefinedLocations = [
+                {
+                    position: { lat: 19.243711, lng: 72.853084 },
+                    title: "St. Francis Institute of Technology",
+                    description: "Engineering college in Mumbai, India",
+                    category: "historic",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                },
+                {
+                    position: { lat: 19.075984, lng: 72.877656 },
+                    title: "Gateway of India",
+                    description: "Historic arch monument built during the 20th century in Mumbai",
+                    category: "monument",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                },
+                {
+                    position: { lat: 19.0764, lng: 72.8777 },
+                    title: "Taj Mahal Palace Hotel",
+                    description: "Historic luxury hotel located near the Gateway of India",
+                    category: "hotel",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
+                },
+                {
+                    position: { lat: 18.9067, lng: 72.8147 },
+                    title: "Elephanta Caves",
+                    description: "UNESCO World Heritage Site with ancient cave temples",
+                    category: "historic",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                },
+                {
+                    position: { lat: 19.0224, lng: 72.8561 },
+                    title: "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya",
+                    description: "Main museum in Mumbai (formerly Prince of Wales Museum)",
+                    category: "museum",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/purple-dot.png"
+                },
+                {
+                    position: { lat: 19.0395, lng: 72.8290 },
+                    title: "Siddhivinayak Temple",
+                    description: "Hindu temple dedicated to Lord Ganesha",
+                    category: "historic",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                },
+                {
+                    position: { lat: 19.1412, lng: 72.8228 },
+                    title: "Sanjay Gandhi National Park",
+                    description: "Protected area in Mumbai with Kanheri Caves",
+                    category: "historic",
+                    icon: "https://maps.google.com/mapfiles/ms/icons/green-dot.png"
+                }
+            ];
+            
+            // Store all current markers
+            let allMarkers = [];
+            
+            // Store custom added markers
+            let customMarkers = [];
+            
+            // Drawing mode flag
+            let drawingMode = false;
+            let drawingManager = null;
+            let routePolyline = null;
+            
+            // The map, centered at the main location
+            const map = new google.maps.Map(document.getElementById("map"), {
+                zoom: 12,
+                center: centerPoint,
+                mapTypeControl: false,  // We'll use our custom controls instead
+                streetViewControl: true,
+                fullscreenControl: true
+            });
+            
+            // Create an info window to share between markers
+            const infoWindow = new google.maps.InfoWindow();
+            
+            // Create the directions service and renderer
+            const directionsService = new google.maps.DirectionsService();
+            const directionsRenderer = new google.maps.DirectionsRenderer({
+                map: map,
+                suppressMarkers: false,
+                polylineOptions: {
+                    strokeColor: '#4285F4',
+                    strokeWeight: 5,
+                    strokeOpacity: 0.8
+                }
+            });
+            
+            // Initialize the geocoder for address lookup
+            const geocoder = new google.maps.Geocoder();
+            
+            // Initialize place search
+            const placesService = new google.maps.places.PlacesService(map);
+            
+            // Function to create markers from location data
+            function createMarkers(locations) {
+                // Clear any existing marker items in the list
+                document.getElementById('marker-list').innerHTML = '';
+                
+                // Create markers for each location
+                locations.forEach((location, i) => {
+                    // Create marker
+                    const marker = new google.maps.Marker({
+                        position: location.position,
+                        map: map,
+                        title: location.title,
+                        animation: google.maps.Animation.DROP,
+                        icon: location.icon || null
+                    });
+                    
+                    // Store category in marker object
+                    marker.category = location.category;
+                    marker.description = location.description;
+                    
+                    // Create info window content with directions button
+                    const contentString = `
+                        <div style="max-width: 300px; padding: 10px;">
+                            <h3 style="margin-top: 0; color: #3498db;">${location.title}</h3>
+                            <p>${location.description || ''}</p>
+                            <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                <button id="getDirections${i}" style="padding: 5px 10px; background: #4285F4; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                    Get Directions
+                                </button>
+                                <button id="addToItinerary${i}" style="padding: 5px 10px; background: #34A853; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                    Add to Itinerary
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Add click event to open info window when marker is clicked
+                    marker.addListener("click", () => {
+                        infoWindow.setContent(contentString);
+                        infoWindow.open(map, marker);
+                        
+                        // Add click event to the directions button after info window is open
+                        setTimeout(() => {
+                            document.getElementById(`getDirections${i}`).addEventListener('click', () => {
+                                calculateAndDisplayRoute(directionsService, directionsRenderer, location.position);
+                                infoWindow.close();
+                            });
+                            
+                            document.getElementById(`addToItinerary${i}`).addEventListener('click', () => {
+                                alert(`Added ${location.title} to your itinerary!`);
+                                infoWindow.close();
+                            });
+                        }, 200);
+                    });
+                    
+                    // Store marker in array
+                    allMarkers.push(marker);
+                    // Create list item for sidebar
+                    const listItem = document.createElement('div');
+                    listItem.className = 'marker-item';
+                    listItem.innerHTML = `
+                        <span>${location.title}</span>
+                        <span style="color: #888; font-size: 0.8rem;">${location.category}</span>
+                    `;
+                    
+                    // Add click event to highlight marker when list item is clicked
+                    listItem.addEventListener('click', () => {
+                        // Center map on this marker
+                        map.setCenter(marker.getPosition());
+                        map.setZoom(15);
+                        
+                        // Open info window
+                        infoWindow.setContent(contentString);
+                        infoWindow.open(map, marker);
+                        
+                        // Add direction button functionality
+                        setTimeout(() => {
+                            document.getElementById(`getDirections${i}`).addEventListener('click', () => {
+                                calculateAndDisplayRoute(directionsService, directionsRenderer, location.position);
+                                infoWindow.close();
+                            });
+                            
+                            document.getElementById(`addToItinerary${i}`).addEventListener('click', () => {
+                                alert(`Added ${location.title} to your itinerary!`);
+                                infoWindow.close();
+                            });
+                        }, 200);
+                        
+                        // Highlight selected item
+                        document.querySelectorAll('.marker-item').forEach(item => {
+                            item.classList.remove('active');
+                        });
+                        listItem.classList.add('active');
+                    });
+                    
+                    document.getElementById('marker-list').appendChild(listItem);
+                });
+            }
+            
+            // Function to calculate and display route
+            function calculateAndDisplayRoute(directionsService, directionsRenderer, destination) {
+                const start = document.getElementById('start').value;
+                // If start field is empty, use current location or default location
+                if (!start) {
+                    if (navigator.geolocation) {
+                        navigator.geolocation.getCurrentPosition(
+                            (position) => {
+                                const pos = {
+                                    lat: position.coords.latitude,
+                                    lng: position.coords.longitude,
+                                };
+                                getRouteToDestination(pos, destination);
+                            },
+                            () => {
+                                alert("Error: The Geolocation service failed. Please enter a starting point manually.");
+                            }
+                        );
+                    } else {
+                        alert("Error: Your browser doesn't support geolocation. Please enter a starting point manually.");
+                    }
+                } else {
+                    // Geocode the address and get route
+                    geocoder.geocode({ address: start }, (results, status) => {
+                        if (status === "OK") {
+                            getRouteToDestination(results[0].geometry.location, destination);
+                        } else {
+                            alert("Geocode was not successful for the following reason: " + status);
+                        }
+                    });
+                }
+                
+                function getRouteToDestination(startLocation, destination) {
+                    // Get selected transportation mode
+                    const selectedMode = document.querySelector('.transport-option.active').getAttribute('data-mode');
+                    
+                    // Get route preferences
+                    const avoidTolls = document.getElementById('pref-avoid-tolls').checked;
+                    const avoidHighways = document.getElementById('pref-avoid-highways').checked;
+                    const avoidFerries = document.getElementById('pref-avoid-ferries').checked;
+                    
+                    const request = {
+                        origin: startLocation,
+                        destination: destination,
+                        travelMode: google.maps.TravelMode[selectedMode],
+                        avoidTolls: avoidTolls,
+                        avoidHighways: avoidHighways,
+                        avoidFerries: avoidFerries
+                    };
+                    
+                    directionsService.route(request, (result, status) => {
+                        if (status === "OK") {
+                            // Display the route on the map
+                            directionsRenderer.setDirections(result);
+                            
+                            // Display turn-by-turn directions in the panel
+                            directionsRenderer.setPanel(document.getElementById('directions-panel'));
+                            
+                            // Fill in the destination field
+                            if (typeof destination === 'object' && 'lat' in destination) {
+                                geocoder.geocode({ location: destination }, (results, status) => {
+                                    if (status === "OK" && results[0]) {
+                                        document.getElementById('end').value = results[0].formatted_address;
+                                    }
+                                });
+                            }
+                        } else {
+                            alert("Directions request failed due to " + status);
+                        }
+                    });
+                }
+            }
+            
+            // Create markers for predefined locations
+            createMarkers(predefinedLocations);
+            
+            // Event listener for Get Directions button
+            document.getElementById('get-directions-btn').addEventListener('click', () => {
+                const end = document.getElementById('end').value;
+                
+                if (!end) {
+                    alert("Please enter a destination.");
+                    return;
+                }
+                
+                geocoder.geocode({ address: end }, (results, status) => {
+                    if (status === "OK") {
+                        calculateAndDisplayRoute(directionsService, directionsRenderer, results[0].geometry.location);
+                    } else {
+                        alert("Geocode was not successful for the following reason: " + status);
+                    }
+                });
+            });
+            
+            // Event listeners for transportation mode options
+            document.querySelectorAll('.transport-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    // Remove active class from all options
+                    document.querySelectorAll('.transport-option').forEach(opt => {
+                        opt.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked option
+                    option.classList.add('active');
+                    
+                    // Recalculate route if both start and end are set
+                    const start = document.getElementById('start').value;
+                    const end = document.getElementById('end').value;
+                    
+                    if (start && end) {
+                        document.getElementById('get-directions-btn').click();
+                    }
+                });
+            });
+            
+            // Event listener for swap button
+            document.getElementById('swap-locations').addEventListener('click', () => {
+                const start = document.getElementById('start').value;
+                const end = document.getElementById('end').value;
+                
+                document.getElementById('start').value = end;
+                document.getElementById('end').value = start;
+                
+                if (start && end) {
+                    document.getElementById('get-directions-btn').click();
+                }
+            });
+            
+            // Event listener for search button
+            document.getElementById('search-btn').addEventListener('click', () => {
+                const searchQuery = document.getElementById('location-search').value;
+                
+                if (!searchQuery) {
+                    return;
+                }
+                
+                const request = {
+                    query: searchQuery,
+                    fields: ['name', 'geometry', 'formatted_address']
+                };
+                
+                placesService.findPlaceFromQuery(request, (results, status) => {
+                    if (status === google.maps.places.PlacesServiceStatus.OK && results) {
+                        const place = results[0];
+                        map.setCenter(place.geometry.location);
+                        map.setZoom(15);
+                        
+                        // Create a temporary marker
+                        const marker = new google.maps.Marker({
+                            position: place.geometry.location,
+                            map: map,
+                            title: place.name,
+                            animation: google.maps.Animation.DROP
+                        });
+                        
+                        // Create info window for the search result
+                        const contentString = `
+                            <div style="max-width: 300px; padding: 10px;">
+                                <h3 style="margin-top: 0; color: #3498db;">${place.name}</h3>
+                                <p>${place.formatted_address || ''}</p>
+                                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                    <button id="getDirectionsSearch" style="padding: 5px 10px; background: #4285F4; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                        Get Directions
+                                    </button>
+                                    <button id="addToItinerarySearch" style="padding: 5px 10px; background: #34A853; color: white; border: none; border-radius: 3px; cursor: pointer;">
+                                        Add to Itinerary
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        
+                        infoWindow.setContent(contentString);
+                        infoWindow.open(map, marker);
+                        
+                        // Add click event to the directions button
+                        setTimeout(() => {
+                            document.getElementById('getDirectionsSearch').addEventListener('click', () => {
+                                document.getElementById('end').value = place.name;
+                                calculateAndDisplayRoute(directionsService, directionsRenderer, place.geometry.location);
+                                infoWindow.close();
+                            });
+                            
+                            document.getElementById('addToItinerarySearch').addEventListener('click', () => {
+                                alert(`Added ${place.name} to your itinerary!`);
+                                infoWindow.close();
+                            });
+                        }, 200);
+                    } else {
+                        alert("No places found matching your search. Please try again.");
+                    }
+                });
+            });
+            
+            // Event listener for search input (Enter key)
+            document.getElementById('location-search').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    document.getElementById('search-btn').click();
+                }
+            });
+            
+            // Event listeners for map controls
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                map.setZoom(map.getZoom() + 1);
+            });
+            
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                map.setZoom(map.getZoom() - 1);
+            });
+            
+            document.getElementById('current-location').addEventListener('click', () => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const pos = {
+                                lat: position.coords.latitude,
+                                lng: position.coords.longitude,
+                            };
+                            
+                            map.setCenter(pos);
+                            map.setZoom(15);
+                            
+                            // Place a marker at current location
+                            const marker = new google.maps.Marker({
+                                position: pos,
+                                map: map,
+                                title: "Your Location",
+                                icon: "https://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+                            });
+                            
+                            // Add info window
+                            infoWindow.setContent("You are here!");
+                            infoWindow.open(map, marker);
+                        },
+                        () => {
+                            alert("Error: The Geolocation service failed.");
+                        }
+                    );
+                } else {
+                    alert("Error: Your browser doesn't support geolocation.");
+                }
+            });
+            
+            document.getElementById('clear-map').addEventListener('click', () => {
+                // Clear directions
+                directionsRenderer.setDirections({ routes: [] });
+                
+                // Clear directions panel
+                document.getElementById('directions-panel').innerHTML = '';
+                
+                // Clear input fields
+                document.getElementById('start').value = '';
+                document.getElementById('end').value = '';
+                
+                // Hide any open info windows
+                infoWindow.close();
+            });
+            
+            document.getElementById('draw-route').addEventListener('click', () => {
+                toggleDrawingMode();
+            });
+            
+            // Function to toggle drawing mode
+            function toggleDrawingMode() {
+                drawingMode = !drawingMode;
+                
+                if (drawingMode) {
+                    // Highlight the button when active
+                    document.getElementById('draw-route').style.backgroundColor = '#4285F4';
+                    document.getElementById('draw-route').style.color = 'white';
+                    
+                    // Initialize drawing manager if not already
+                    if (!drawingManager) {
+                        drawingManager = new google.maps.drawing.DrawingManager({
+                            drawingMode: google.maps.drawing.OverlayType.POLYLINE,
+                            drawingControl: false,
+                            polylineOptions: {
+                                strokeColor: '#FF0000',
+                                strokeWeight: 5,
+                                editable: true
+                            }
+                        });
+                        
+                        // Add event listener for when polyline is complete
+                        google.maps.event.addListener(drawingManager, 'polylinecomplete', function(polyline) {
+                            routePolyline = polyline;
+                            
+                            // Exit drawing mode after drawing is complete
+                            drawingManager.setDrawingMode(null);
+                            drawingMode = false;
+                            document.getElementById('draw-route').style.backgroundColor = '';
+                            document.getElementById('draw-route').style.color = '';
+                            
+                            // Show save option
+                            const path = routePolyline.getPath();
+                            if (path.getLength() > 1) {
+                                const startPoint = path.getAt(0);
+                                const endPoint = path.getAt(path.getLength() - 1);
+                                
+                                // Reverse geocode start and end points
+                                geocoder.geocode({ location: startPoint }, (results, status) => {
+                                    if (status === "OK" && results[0]) {
+                                        document.getElementById('start').value = results[0].formatted_address;
+                                    }
+                                });
+                                
+                                geocoder.geocode({ location: endPoint }, (results, status) => {
+                                    if (status === "OK" && results[0]) {
+                                        document.getElementById('end').value = results[0].formatted_address;
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    
+                    drawingManager.setMap(map);
+                } else {
+                    // Reset button style
+                    document.getElementById('draw-route').style.backgroundColor = '';
+                    document.getElementById('draw-route').style.color = '';
+                    
+                    // Stop drawing mode
+                    if (drawingManager) {
+                        drawingManager.setMap(null);
+                    }
+                }
+            }
+            
+            // Event listeners for map type controls
+            document.querySelectorAll('.layer-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Remove active class from all buttons
+                    document.querySelectorAll('.layer-btn').forEach(b => {
+                        b.classList.remove('active');
+                    });
+                    
+                    // Add active class to clicked button
+                    btn.classList.add('active');
+                    
+                    // Set map type
+                    const mapType = btn.getAttribute('data-type');
+                    map.setMapTypeId(mapType);
+                });
+            });
+            
+            // Event listener for marker filter
+            document.getElementById('marker-filter').addEventListener('change', function() {
+                const category = this.value;
+                
+                // Show/hide markers based on category
+                allMarkers.forEach(marker => {
+                    if (category === 'all' || marker.category === category) {
+                        marker.setVisible(true);
+                    } else {
+                        marker.setVisible(false);
+                    }
+                });
+                
+                // Update marker list in sidebar
+                document.querySelectorAll('.marker-item').forEach(item => {
+                    const markerCategory = item.querySelector('span:last-child').textContent;
+                    if (category === 'all' || markerCategory === category) {
+                        item.style.display = 'flex';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            });
+            
+            // Event listener for show all markers button
+            document.getElementById('show-all-btn').addEventListener('click', () => {
+                document.getElementById('marker-filter').value = 'all';
+                
+                // Show all markers
+                allMarkers.forEach(marker => {
+                    marker.setVisible(true);
+                });
+                
+                // Show all items in list
+                document.querySelectorAll('.marker-item').forEach(item => {
+                    item.style.display = 'flex';
+                });
+                
+                // Reset active state for tool buttons
+                document.querySelectorAll('.marker-tool-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById('show-all-btn').classList.add('active');
+                
+                // Hide custom marker form
+                document.getElementById('custom-marker-form').classList.remove('show');
+            });
+            
+            // Event listener for add custom marker button
+            document.getElementById('add-marker-btn').addEventListener('click', () => {
+                // Show custom marker form
+                document.getElementById('custom-marker-form').classList.toggle('show');
+                
+                // Reset active state for tool buttons
+                document.querySelectorAll('.marker-tool-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById('add-marker-btn').classList.add('active');
+            });
+            
+            // Event listener for save custom marker button
+            document.getElementById('save-marker-btn').addEventListener('click', () => {
+                const title = document.getElementById('marker-title').value;
+                const description = document.getElementById('marker-description').value;
+                const category = document.getElementById('marker-category').value;
+                
+                if (!title) {
+                    alert("Please enter a title for your marker.");
+                    return;
+                }
+                
+                // Let user click on map to place marker
+                map.setOptions({ draggableCursor: 'crosshair' });
+                
+                // Show instruction 
+                alert("Click on the map to place your marker.");
+                
+                // Add one-time click listener to map
+                const clickListener = map.addListener('click', (e) => {
+                    // Get click position
+                    const position = e.latLng;
+                    
+                    // Create new custom marker
+                    const customMarker = {
+                        position: position,
+                        title: title,
+                        description: description,
+                        category: category,
+                        icon: "https://maps.google.com/mapfiles/ms/icons/pink-dot.png" // Different color for custom markers
+                    };
+                    
+                    // Add to custom markers array
+                    customMarkers.push(customMarker);
+                    
+                    // Create the marker on map
+                    createMarkers([customMarker]);
+                    
+                    // Reset cursor
+                    map.setOptions({ draggableCursor: null });
+                    
+                    // Remove click listener
+                    google.maps.event.removeListener(clickListener);
+                    
+                    // Hide form and clear inputs
+                    document.getElementById('custom-marker-form').classList.remove('show');
+                    document.getElementById('marker-title').value = '';
+                    document.getElementById('marker-description').value = '';
+                    
+                    // Show success message
+                    alert("Custom marker added successfully!");
+                });
+            });
+        }
+    </script>
+    
+    <!-- Leaflet JS and Routing Machine (loaded regardless; used in fallback) -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.min.js"></script>
+    <script>
+        // Fallback implementation using Leaflet when Google Maps is not available or the API key is invalid.
+        function initLeaflet() {
+            const centerPoint = { lat: 19.243711, lng: 72.853084 };
+            const map = L.map('map').setView([centerPoint.lat, centerPoint.lng], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            const predefinedLocations = [
+                { position: { lat: 19.243711, lng: 72.853084 }, title: "St. Francis Institute of Technology", description: "Engineering college in Mumbai, India", category: "historic" },
+                { position: { lat: 19.075984, lng: 72.877656 }, title: "Gateway of India", description: "Historic arch monument built during the 20th century in Mumbai", category: "monument" },
+                { position: { lat: 19.0764, lng: 72.8777 }, title: "Taj Mahal Palace Hotel", description: "Historic luxury hotel located near the Gateway of India", category: "hotel" },
+                { position: { lat: 18.9067, lng: 72.8147 }, title: "Elephanta Caves", description: "UNESCO World Heritage Site with ancient cave temples", category: "historic" },
+                { position: { lat: 19.0224, lng: 72.8561 }, title: "Chhatrapati Shivaji Maharaj Vastu Sangrahalaya", description: "Main museum in Mumbai", category: "museum" },
+                { position: { lat: 19.0395, lng: 72.8290 }, title: "Siddhivinayak Temple", description: "Hindu temple dedicated to Lord Ganesha", category: "historic" },
+                { position: { lat: 19.1412, lng: 72.8228 }, title: "Sanjay Gandhi National Park", description: "Protected area in Mumbai with Kanheri Caves", category: "historic" }
+            ];
+
+            const leafletMarkers = [];
+            const markerLayer = L.layerGroup().addTo(map);
+
+            function createMarkers(locations) {
+                markerLayer.clearLayers();
+                document.getElementById('marker-list').innerHTML = '';
+
+                locations.forEach((loc, idx) => {
+                    const marker = L.marker([loc.position.lat, loc.position.lng]).addTo(markerLayer);
+                    marker.bindPopup(`<strong>${loc.title}</strong><br/>${loc.description || ''}`);
+                    leafletMarkers.push({ marker, category: loc.category, title: loc.title });
+
+                    const listItem = document.createElement('div');
+                    listItem.className = 'marker-item';
+                    listItem.innerHTML = `<span>${loc.title}</span><span style="color:#888;font-size:0.8rem;">${loc.category}</span>`;
+                    listItem.addEventListener('click', () => {
+                        map.setView([loc.position.lat, loc.position.lng], 15);
+                        marker.openPopup();
+                        document.querySelectorAll('.marker-item').forEach(i => i.classList.remove('active'));
+                        listItem.classList.add('active');
+                    });
+                    document.getElementById('marker-list').appendChild(listItem);
+                });
+            }
+
+            createMarkers(predefinedLocations);
+
+            // Controls
+            document.getElementById('zoom-in').addEventListener('click', () => map.zoomIn());
+            document.getElementById('zoom-out').addEventListener('click', () => map.zoomOut());
+            document.getElementById('current-location').addEventListener('click', () => {
+                if (!navigator.geolocation) return alert("Geolocation not supported");
+                navigator.geolocation.getCurrentPosition(pos => {
+                    const { latitude, longitude } = pos.coords;
+                    map.setView([latitude, longitude], 15);
+                    L.marker([latitude, longitude]).addTo(markerLayer).bindPopup('You are here!').openPopup();
+                }, () => alert('Failed to get your location'));
+            });
+
+            let routingControl = null;
+            function clearRoute() {
+                if (routingControl) {
+                    map.removeControl(routingControl);
+                    routingControl = null;
+                }
+                document.getElementById('directions-panel').innerHTML = '';
+            }
+
+            document.getElementById('clear-map').addEventListener('click', () => {
+                clearRoute();
+                markerLayer.clearLayers();
+                createMarkers(predefinedLocations);
+                (document.getElementById('start').value = ''), (document.getElementById('end').value = '');
+            });
+
+            // Basic Nominatim geocoding helper
+            async function geocode(query) {
+                const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+                const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                const data = await res.json();
+                if (data && data.length) {
+                    const p = data[0];
+                    return { lat: parseFloat(p.lat), lng: parseFloat(p.lon), display_name: p.display_name };
+                }
+                throw new Error('No results');
+            }
+
+            // Search button
+            document.getElementById('search-btn').addEventListener('click', async () => {
+                const q = document.getElementById('location-search').value.trim();
+                if (!q) return;
+                try {
+                    const res = await geocode(q);
+                    map.setView([res.lat, res.lng], 15);
+                    const m = L.marker([res.lat, res.lng]).addTo(markerLayer).bindPopup(`<strong>${q}</strong><br/>${res.display_name}`);
+                    m.openPopup();
+                } catch (e) {
+                    alert('No places found. Please try another search.');
+                }
+            });
+
+            // Transport mode UI remains visual only in fallback
+            document.querySelectorAll('.transport-option').forEach(opt => {
+                opt.addEventListener('click', () => {
+                    document.querySelectorAll('.transport-option').forEach(o => o.classList.remove('active'));
+                    opt.classList.add('active');
+                });
+            });
+
+            // Get Directions (using OSRM via Leaflet Routing Machine)
+            document.getElementById('get-directions-btn').addEventListener('click', async () => {
+                const startVal = document.getElementById('start').value.trim();
+                const endVal = document.getElementById('end').value.trim();
+                if (!endVal) return alert('Please enter a destination.');
+
+                try {
+                    let startPoint;
+                    if (!startVal) {
+                        // Use current location if available, else center
+                        startPoint = await new Promise(resolve => {
+                            if (navigator.geolocation) {
+                                navigator.geolocation.getCurrentPosition(
+                                    pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+                                    () => resolve(centerPoint)
+                                );
+                            } else {
+                                resolve(centerPoint);
+                            }
+                        });
+                    } else {
+                        const g1 = await geocode(startVal);
+                        startPoint = { lat: g1.lat, lng: g1.lng };
+                    }
+
+                    const g2 = await geocode(endVal);
+                    const endPoint = { lat: g2.lat, lng: g2.lng };
+
+                    clearRoute();
+                    routingControl = L.Routing.control({
+                        waypoints: [L.latLng(startPoint.lat, startPoint.lng), L.latLng(endPoint.lat, endPoint.lng)],
+                        router: L.Routing.osrmv1({ serviceUrl: 'https://router.project-osrm.org/route/v1' }),
+                        lineOptions: { styles: [{ color: '#4285F4', weight: 5, opacity: 0.8 }] },
+                        addWaypoints: false,
+                        draggableWaypoints: false,
+                        show: false
+                    }).addTo(map);
+                } catch (e) {
+                    alert('Unable to calculate route. Please refine your inputs.');
+                }
+            });
+
+            // Filter markers by category
+            document.getElementById('marker-filter').addEventListener('change', e => {
+                const category = e.target.value;
+                markerLayer.clearLayers();
+                const filtered = predefinedLocations.filter(loc => category === 'all' || loc.category === category);
+                createMarkers(filtered);
+            });
+
+            // Show all markers
+            document.getElementById('show-all-btn').addEventListener('click', () => {
+                document.getElementById('marker-filter').value = 'all';
+                markerLayer.clearLayers();
+                createMarkers(predefinedLocations);
+            });
+
+            // Drawing feature not supported in fallback
+            document.getElementById('draw-route').addEventListener('click', () => {
+                alert('Freehand drawing is not supported in fallback mode.');
+            });
+        }
+
+        // If Google Maps fails to load (invalid/missing API key), initialize Leaflet fallback automatically
+        (function ensureMapLoaded() {
+            const fallbackTimeoutMs = 2000;
+            window.addEventListener('load', function() {
+                setTimeout(function() {
+                    if (!(window.google && window.google.maps)) {
+                        initLeaflet();
+                    }
+                }, fallbackTimeoutMs);
+            });
+        })();
+    </script>
+    
+    {% if google_maps_api_key and google_maps_api_key != 'YOUR_API_KEY_HERE' %}
+    <!-- Google Maps API with required libraries -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&libraries=places,drawing&callback=initMap" async defer></script>
+    {% else %}
+    <!-- No/placeholder Google API key detected: use Leaflet immediately -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() { initLeaflet(); });
+    </script>
+    {% endif %}
+</body>
+</html>

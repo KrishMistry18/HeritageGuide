@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roamly - AI Travel Assistant</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      width: 100%;
+      max-width: 1200px;
+      height: 90vh;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      overflow: hidden;
+    }
+    
+    .left-panel {
+      width: 35%;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      padding: 40px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .left-panel::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url('https://www.transparenttextures.com/patterns/cubes.png');
+      opacity: 0.1;
+    }
+    
+    .right-panel {
+      width: 65%;
+      display: flex;
+      flex-direction: column;
+      background: #ffffff;
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      font-size: 20px;
+      margin-bottom: 30px;
+    }
+    
+    .logo-icon {
+      width: 32px;
+      height: 32px;
+      margin-right: 12px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 40px;
+    }
+    
+    .nav-links {
+      display: flex;
+      gap: 20px;
+    }
+    
+    .nav-links a {
+      color: white;
+      text-decoration: none;
+      opacity: 0.8;
+      font-size: 14px;
+      transition: opacity 0.3s ease;
+    }
+    
+    .nav-links a:hover {
+      opacity: 1;
+    }
+    
+    .heading {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 20px;
+    }
+    
+    .subtitle {
+      font-size: 15px;
+      line-height: 1.6;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    
+    .chat-header {
+      padding: 20px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      font-weight: 600;
+      color: #495057;
+    }
+    
+    .chat-header svg {
+      margin-right: 12px;
+      color: #6a11cb;
+    }
+    
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      background: #f8f9fa;
+      line-height: 1.6;
+    }
+    
+    .user-message {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 18px 18px 0 18px;
+      max-width: 85%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      animation: slideIn 0.3s ease;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    
+    .bot-message {
+      align-self: flex-start;
+      background: white;
+      color: #495057;
+      padding: 15px 20px;
+      border-radius: 18px 18px 18px 0;
+      max-width: 85%;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+      animation: slideIn 0.3s ease;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+    
+    .bot-message p {
+      margin-bottom: 10px;
+    }
+    
+    .bot-message ul, .bot-message ol {
+      margin: 10px 0;
+      padding-left: 20px;
+    }
+    
+    .bot-message li {
+      margin-bottom: 5px;
+    }
+    
+    .bot-message strong {
+      color: #6a11cb;
+      font-weight: 600;
+    }
+    
+    .bot-message em {
+      font-style: italic;
+      color: #666;
+    }
+    
+    .bot-message code {
+      background: #f0f0f0;
+      padding: 2px 4px;
+      border-radius: 4px;
+      font-family: monospace;
+    }
+    
+    .bot-message pre {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 10px 0;
+    }
+    
+    .bot-message blockquote {
+      border-left: 4px solid #6a11cb;
+      padding-left: 15px;
+      margin: 10px 0;
+      color: #666;
+    }
+    
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .question-bar-container {
+      padding: 20px;
+      background: white;
+      border-top: 1px solid #e9ecef;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .question-input {
+      flex: 1;
+      padding: 14px 20px;
+      border: 1px solid #e9ecef;
+      border-radius: 30px;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s ease;
+      background: #f8f9fa;
+    }
+    
+    .question-input:focus {
+      border-color: #6a11cb;
+      box-shadow: 0 0 0 3px rgba(106, 17, 203, 0.1);
+    }
+    
+    .send-button {
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      border: none;
+      border-radius: 50%;
+      width: 45px;
+      height: 45px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+    }
+    
+    .send-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+    
+    .send-button svg {
+      width: 20px;
+      height: 20px;
+    }
+    
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: 100vh;
+        border-radius: 0;
+      }
+      
+      .left-panel, .right-panel {
+        width: 100%;
+      }
+      
+      .left-panel {
+        height: auto;
+        padding: 20px;
+      }
+      
+      .right-panel {
+        height: 100%;
+      }
+      
+      .heading {
+        font-size: 24px;
+      }
+      
+      .subtitle {
+        font-size: 14px;
+        margin-bottom: 20px;
+      }
+      
+      .user-message, .bot-message {
+        max-width: 85%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="left-panel">
+      <div class="nav">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 6H20M4 12H20M4 18H20" stroke="white" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          HistoryGate
+        </div>
+        <div class="nav-links">
+          <a href="{% url 'index' %}">Home</a>
+          <a href="">Notification</a>
+        </div>
+      </div>
+      
+      <h1 class="heading">Roamly-AI Travel Assistant</h1>
+      <p class="subtitle">Travel Buddy AI is an intelligent virtual travel companion that 
+        helps users plan, book, and navigate their journeys with ease. This AI-powered 
+        chatbot provides personalized travel recommendations, offers real-time assistance 
+        throughout your trip.</p>
+      
+    </div>
+    
+    <div class="right-panel">
+      <div class="circle-design"></div>
+      
+      <div class="chat-container">
+        <div class="chat-header">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 10px;">
+            <circle cx="12" cy="12" r="10" stroke="#7b68ee" stroke-width="2"/>
+            <path d="M12 16v-5M12 8.5v-.01" stroke="#7b68ee" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Chat with Roamly
+        </div>
+        
+        <div class="chat-messages" id="chat-messages">
+          <div class="bot-message">Hello! I'm Roamly, your AI travel assistant. Ask me about any destination or historical site you'd like to explore!</div>
+        </div>
+        
+        <!-- Question input bar from index.html -->
+        <div class="question-bar-container">
+          <input type="text" id="user-input" class="question-input" placeholder="Ask Roamly about any travel destination...">
+          <button id="send-btn" class="send-button">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 2L11 13M22 2L15 22L11 13M11 13L2 9L22 2" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    $(document).ready(function() {
+      // Handle send button click
+      $("#send-btn").click(function() {
+        sendMessage();
+      });
+      
+      // Handle Enter key press in input field
+      $("#user-input").keypress(function(e) {
+        if (e.which == 13) { // Enter key
+          sendMessage();
+          return false;
+        }
+      });
+      
+      function sendMessage() {
+        const userInput = $("#user-input").val().trim();
+        
+        if (userInput === "") return;
+        
+        // Add user message to chat
+        $("#chat-messages").append(`
+          <div class="user-message">${userInput}</div>
+        `);
+        
+        // Clear input field
+        $("#user-input").val("");
+        
+        // Scroll to bottom
+        $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+        
+        // Send to backend
+        $.ajax({
+          url: "/chatbot/get-response/",  // Updated to match the URL pattern in urls.py
+          type: "POST",
+          contentType: "application/json",
+          data: JSON.stringify({ message: userInput }),
+          success: function(data) {
+            // Add bot message to chat
+            $("#chat-messages").append(`
+              <div class="bot-message">${data.response}</div>
+            `);
+            
+            // Scroll to bottom
+            $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+          },
+          error: function(xhr, status, error) {
+            console.error("Error:", error);
+            console.error("Response:", xhr.responseText);
+            // Show error message
+            $("#chat-messages").append(`
+              <div class="bot-message">Sorry, I'm having trouble responding right now. Please try again later.</div>
+            `);
+            
+            // Scroll to bottom
+            $("#chat-messages").scrollTop($("#chat-messages")[0].scrollHeight);
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

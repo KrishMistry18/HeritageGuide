@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Book a Slot</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .slots-info {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .site-type-select {
+            margin-bottom: 10px;
+        }
+        optgroup {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Book a Slot</h2>
+        
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <form id="bookingForm" method="POST" action="">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="site_name">Select Site:</label>
+                <select id="site_name" name="site_name" required>
+                    <option value="">Select a site</option>
+                    {% if museums %}
+                    <optgroup label="Museums">
+                        {% for museum in museums %}
+                        <option value="{{ museum.name }}">{{ museum.name }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endif %}
+                    
+                    {% if monuments %}
+                    <optgroup label="Monuments">
+                        {% for monument in monuments %}
+                        <option value="{{ monument.name }}">{{ monument.name }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endif %}
+                    
+                    {% if events %}
+                    <optgroup label="Events">
+                        {% for event in events %}
+                        <option value="{{ event.name }}">{{ event.name }}</option>
+                        {% endfor %}
+                    </optgroup>
+                    {% endif %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="user_name">Your Name:</label>
+                <input type="text" id="user_name" name="user_name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="booking_date">Select Date:</label>
+                <input type="date" id="booking_date" name="booking_date" required>
+            </div>
+
+            <div class="slots-info">
+                Available Slots: <span id="available_slots">-</span><br>
+                <small>
+                    Total Capacity: <span id="total_capacity">-</span><br>
+                    Already Booked: <span id="booked_slots">-</span><br>
+                    Day: <span id="selected_day">-</span>
+                </small>
+            </div>
+
+            <div class="form-group">
+                <label for="num_persons">Number of Persons:</label>
+                <input type="number" id="num_persons" name="num_persons" min="1" required>
+            </div>
+
+            <button type="submit" id="bookButton" disabled>Book Now</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const siteNameSelect = document.getElementById('site_name');
+            const dateInput = document.getElementById('booking_date');
+            const numPersonsInput = document.getElementById('num_persons');
+            const availableSlotsSpan = document.getElementById('available_slots');
+            const totalCapacitySpan = document.getElementById('total_capacity');
+            const bookedSlotsSpan = document.getElementById('booked_slots');
+            const selectedDaySpan = document.getElementById('selected_day');
+            const bookButton = document.getElementById('bookButton');
+
+            // Set minimum date as today
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+
+            function checkAvailableSlots() {
+                const siteName = siteNameSelect.value;
+                const date = dateInput.value;
+                const numPersons = parseInt(numPersonsInput.value) || 0;
+
+                if (siteName && date) {
+                    fetch(`/get-available-slots/?site_name=${encodeURIComponent(siteName)}&date=${date}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error) {
+                                availableSlotsSpan.textContent = 'Error loading slots';
+                                totalCapacitySpan.textContent = '-';
+                                bookedSlotsSpan.textContent = '-';
+                                selectedDaySpan.textContent = '-';
+                                bookButton.disabled = true;
+                            } else {
+                                const availableSlots = data.available_slots;
+                                availableSlotsSpan.textContent = availableSlots;
+                                totalCapacitySpan.textContent = data.total_capacity;
+                                bookedSlotsSpan.textContent = data.booked;
+                                selectedDaySpan.textContent = data.day;
+                                
+                                // Update max allowed persons based on available slots
+                                numPersonsInput.max = availableSlots;
+                                
+                                // Enable book button only if enough slots are available
+                                bookButton.disabled = numPersons > availableSlots || numPersons < 1;
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            availableSlotsSpan.textContent = 'Error loading slots';
+                            totalCapacitySpan.textContent = '-';
+                            bookedSlotsSpan.textContent = '-';
+                            selectedDaySpan.textContent = '-';
+                            bookButton.disabled = true;
+                        });
+                } else {
+                    availableSlotsSpan.textContent = '-';
+                    totalCapacitySpan.textContent = '-';
+                    bookedSlotsSpan.textContent = '-';
+                    selectedDaySpan.textContent = '-';
+                    bookButton.disabled = true;
+                }
+            }
+
+            // Check available slots when inputs change
+            siteNameSelect.addEventListener('change', checkAvailableSlots);
+            dateInput.addEventListener('change', checkAvailableSlots);
+            numPersonsInput.addEventListener('input', checkAvailableSlots);
+        });
+    </script>
+</body>
+</html>

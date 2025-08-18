@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign-Up Page</title>
+    <style>
+        body {
+            font-family: 'Fira Mono', 'Consolas', 'Menlo', monospace;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #eae6fa 0%, #e3e3fa 100%);
+        }
+        .navbar {
+            background: #232323;
+            border-radius: 50px;
+            margin: 40px 32px 48px 32px;
+            padding: 0 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            height: 80px;
+        }
+        .nav-links {
+            display: flex;
+            gap: 48px;
+        }
+        .nav-link {
+            color: #bfc9d1;
+            text-decoration: none;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+        .nav-link:hover {
+            color: #fff;
+        }
+        .signup-nav-btn {
+            background: none;
+            border: 1.5px solid #bfc9d1;
+            color: #bfc9d1;
+            border-radius: 30px;
+            padding: 12px 32px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .signup-nav-btn:hover {
+            background: #fff;
+            color: #232323;
+            border: 1.5px solid #fff;
+        }
+        .container {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 2px 16px rgba(0, 0, 0, 0.08);
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            padding: 40px 32px 32px 32px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .signup-title {
+            color: #232323;
+            font-size: 2rem;
+            margin-bottom: 24px;
+            font-weight: bold;
+        }
+        .input-field {
+            width: 100%;
+            height: 44px;
+            margin: 12px 0;
+            background-color: #f3f4fa;
+            border: 1.5px solid #d1d5db;
+            border-radius: 7px;
+            color: #232323;
+            font-size: 1rem;
+            padding: 0 14px;
+            box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .input-field:focus {
+            border: 1.5px solid #7c3aed;
+            outline: none;
+        }
+        .input-field::placeholder {
+            color: #bfc9d1;
+            opacity: 1;
+        }
+        .signup-button {
+            width: 100%;
+            height: 44px;
+            margin-top: 18px;
+            background-color: #7c3aed;
+            border: none;
+            border-radius: 7px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .signup-button:hover {
+            background-color: #5f27cd;
+        }
+        .login-link {
+            margin-top: 18px;
+            color: #7c3aed;
+            text-decoration: underline;
+            font-size: 1rem;
+        }
+        @media (max-width: 600px) {
+            .navbar {
+                flex-direction: column;
+                height: auto;
+                padding: 16px;
+                gap: 16px;
+            }
+            .container {
+                padding: 24px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <div class="nav-links">
+            <a href="#" class="nav-link">Home</a>
+            <a href="#" class="nav-link">About us</a>
+            <a href="#" class="nav-link">Map</a>
+            <a href="#" class="nav-link">Pathfindr</a>
+            <a href="#" class="nav-link">Roamly</a>
+        </div>
+        <button class="signup-nav-btn">Sign Up <span>&rarr;</span></button>
+    </div>
+    <div class="container">
+        <h2 class="signup-title">Sign Up</h2>
+        <input type="text" class="input-field" placeholder="Username">
+        <input type="email" class="input-field" placeholder="Email">
+        <input type="password" class="input-field" placeholder="Password">
+        <input type="password" class="input-field" placeholder="Confirm Password">
+        <input type="date" class="input-field" placeholder="Birth Date">
+        <input type="tel" class="input-field" placeholder="Phone Number">
+        <button class="signup-button">Sign Up</button>
+        <a href="#" class="login-link">Already have an account? Login here</a>
+    </div>
+</body>
+</html>
+

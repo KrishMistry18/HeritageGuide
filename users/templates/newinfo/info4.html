@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HistoryGate</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: linear-gradient(135deg, hsl(252, 85%, 93%) 0%, hsl(228, 100%, 95%) 100%);
+            color: #000000;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .nav-container {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 10px 5%;
+              background-color: #222;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              width:95%;
+              margin-top:1.5%;
+              margin-left:2%;
+              border-radius: 50px;
+          }
+          
+          .nav-items {
+              display: flex;
+              margin-left:35%;
+              background-color:transparent;
+              border-radius: 100px;
+              padding: 0.6rem 1.2rem;
+          }
+          
+          .nav-items a {
+              color: #a9a9a9;
+              text-decoration: none;
+              font-size: 0.9rem;
+              padding: 0.4rem 1rem;
+              font-weight: 400;
+              transition: color 0.3s ease;
+          }
+          
+          .nav-items a:hover {
+              color: #ffffff;
+          }
+          
+          .cta-button {
+              background-color: #1e1e1e;
+              color: #ffffff;
+              padding: 0.8rem 1.5rem;
+              border-radius: 100px;
+              font-weight: 500;
+              font-size: 0.9rem;
+              text-decoration: none;
+              transition: background-color 0.3s ease;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          
+          .cta-button:hover {
+              background-color: #2a2a2a;
+          } 
+
+/* Auth buttons */
+.sign-up-btn {
+  background-color: #ffcc00;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.sign-up-btn:hover {
+  background-color: #e6b800;
+}
+
+/* Style for the Account Button */
+.account {
+    background-color: transparent; /* Transparent background */
+    border-radius: 50%; /* Circular shape */
+    width: 40px; /* Fixed size */
+    height: 40px; /* Fixed size */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    margin-top:0%;
+}
+
+/* Style for the Icon inside the Button */
+.account i {
+    font-size: 24px; /* Adjust icon size */
+    color: white; /* White color */
+}
+
+/* Hover Effect */
+.account:hover {
+    background-color: rgba(255, 255, 255, 0.2); /* Light background effect */
+    border-color: #ffcc00; /* Yellow border on hover */
+}
+
+/* Click Effect */
+.account:active {
+    transform: scale(0.95); /* Slight shrink effect */
+}
+
+
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    right: 0;
+    background-color: #f9f9f9;
+    min-width: 180px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 4px;
+    padding: 8px 0;
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-item {
+    color: black;
+    padding: 8px 16px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-item:hover {
+    background-color: #f1f1f1;
+}
+
+.dropdown-item-text {
+    padding: 8px 16px;
+    font-weight: 500;
+    color: #555;
+}
+
+.dropdown-divider {
+    height: 1px;
+    margin: 4px 0;
+    background-color: #e5e5e5;
+    border: none;
+}
+
+.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+        .info-container{
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+            margin-bottom:100px;
+            margin-right:260px;
+            margin-left:5%;
+            margin-top:1%;
+            height:480px;
+            width:90%;
+            border-radius:15px;
+            background-image: url('https://drive.google.com/thumbnail?id=138-9R9sA2KqFZav5bG12qP8Y2rlTgTQr');
+            background-size: cover; /* Adjusts the image size */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents repeating */
+        }
+
+        .inner-container{
+            background-color: rgb(87, 85, 85);
+            transform: translateY(30px);
+            margin-left:90px;
+            width:261px;
+            height:416px;
+            border-radius: 10px;
+            background-image: url('https://drive.google.com/thumbnail?id=17cixkumoTcueQ61j5L6_gDT0LY10W8sM');
+            background-size: cover; /* Adjusts the image size */
+            background-position: center; /* Centers the image */
+            background-repeat: no-repeat; /* Prevents repeating */
+        }
+
+        .info-title{
+            margin-left:400px;
+            margin-top:-170px;
+            font-size: 40px;
+            font:bold;
+            font-family: 'cooper black', Courier, monospace;
+            color:rgb(37, 3, 138);
+            background: rgba(255, 255, 255, 0.6);  /* Adding transparent white background */
+            padding: 10px 20px;  /* Adding some padding to make the background visible */
+            border-radius: 8px;  /* Optional: rounds the corners */
+        }
+
+        .info-desc{
+            font-size:25px;
+            margin-left:400px;
+        }
+
+        .image-title{
+            transform: translateY(40%);
+            margin-left:100px;
+            margin-right:50px;
+            font-size: 34px;
+            color:rgb(0, 0, 0);
+        }
+
+        .image-container{
+            margin-left:10%;
+            margin-top:-5%;
+            width:80%;
+            height:500px;
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+            border-radius: 15px ;
+            
+        }
+
+        .slider-container {
+            position: relative;
+            width: 90%;
+            max-width: 1600px;
+            height: 400px;
+            overflow: hidden;
+            margin: 8% auto 10%;
+            margin-top:2%;
+            margin-left:4%;
+            margin-bottom:3%;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 60%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .slider-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .slider-btn {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 10;
+        }
+
+        .slider-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .dots {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: white;
+        }
+
+        /* New containers layout */
+        .info-section-container {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1350px;
+            margin: 40px auto;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .left-container {
+            flex: 1.5;
+        }
+
+        .right-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .about-container, .timings-container, .address-container {
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+        }
+
+        .about-container h2, .timings-container h2, .address-container h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: rgb(0, 0, 0);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .about-container p, .timings-container p, .address-container p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .maps-button{
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .maps-button:hover {
+            background-color: #e6b800;
+        }
+
+        .book-slots {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            transform: translateY(40px);
+            margin-left:400px;
+        }
+
+        .book-slots:hover {
+            background-color: #e6b800;
+        }
+
+        .custom-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .reviews-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .review {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: transform 0.3s ease;
+            border-top: 4px solid #3498db;
+            color: black;
+        }
+
+        .review:hover {
+            transform: translateY(-5px);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #dfe6e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            color: #3498db;
+            font-size: 20px;
+        }
+
+        .reviewer-name {
+            font-weight: bold;
+            font-size: 16px;
+            display: block;
+        }
+
+        .review-date {
+            color: #777;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .review-rating {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            color: #ffc107;
+            margin-right: 2px;
+            font-size: 18px;
+        }
+
+        .review-text {
+            line-height: 1.6;
+            color: #555;
+            font-size: 15px;
+            border-left: 3px solid #f0f0f0;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+
+        .review-tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .verified {
+            background-color: #e3f7ed;
+            color: #1abc9c;
+        }
+
+        footer {
+            background-color: #0D1117;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2A2D32;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 150px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+
+        .footer-section h3 {
+            font-size: 14px;
+            color: #8B949E;
+            margin-bottom: 15px;
+        }
+
+        .footer-section a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #58A6FF;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 20px;
+            padding: 0 15px;
+        }
+
+        .footer-bottom p {
+            font-size: 14px;
+            color: #8B949E;
+            margin: 5px 0;
+        }
+
+        .footer-bottom a {
+            color: #58A6FF;
+            text-decoration: none;
+        }
+
+        .social-icons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .social-icons a {
+            margin: 5px;
+        }
+
+        .social-icons img {
+            width: 24px;
+            cursor: pointer;
+            filter: grayscale(1);
+            transition: filter 0.3s ease;
+        }
+
+        .social-icons img:hover {
+            filter: grayscale(0);
+        }
+
+        /* Responsive styles */
+        @media screen and (max-width: 1024px) {
+            .info-section-container {
+                flex-direction: column;
+            }
+            .right-container {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .header {
+                margin-left: 20px;
+            }
+            .event-carousel {
+                margin-left: 20px;
+            }
+            .info-container {
+                margin-right: 100px;
+            }
+            .info-title, .info-desc {
+                margin-left: 200px;
+                font-size: 32px;
+            }
+            .book-slots {
+                margin-left: 200px;
+            }
+            .image-title{
+                margin-left:30px;
+            }
+            .inner-container {
+                display: none !important;
+            }
+            .book-slots {
+                margin-left: 10px;
+                margin-top:200px;
+            }
+        }
+
+        @media screen and (max-width: 430px) {
+            .header {
+                flex-direction: column;
+                align-items: center;
+                margin-left: 0;
+                text-align: center;
+            }
+            .event-carousel {
+                margin-left: 0;
+                padding: 10px;
+                gap: 10px;
+            }
+            .event-card {
+                width: 150px;
+            }
+            .info-container {
+                margin-right: 0;
+                height: auto;
+                text-align: center;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .inner-container {
+                display: none !important;
+            }
+            .info-title, .info-desc {
+                margin-left: 0;
+                font-size: 24px;
+                text-align: center;
+            }
+            .book-slots {
+                margin-left: 0;
+                text-align: center;
+            }
+            .about-container {
+                margin-left: 0;
+                padding: 10px;
+            }
+            .book-slots {
+                margin-left: 10px;
+                margin-top:200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="nav-container">
+        <div class="nav-items">
+            <a href="{% url 'chatbot' %}">Home</a>
+            <a href="{% url 'about'%}">About us</a>
+            <a href="{% url 'map' %}">Map</a>
+            <a href="{% url 'itinerary_create' %}">Pathfindr</a>
+            <a href="{% url 'chatbot' %}">Roamly</a>
+        </div>
+          
+        {% if user.is_authenticated %}
+            <div class="dropdown">
+                <button class="account dropdown-toggle" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                    <li class="dropdown-item-text">Logged in as: {{ user.username }}</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'account' %}">My Account</a></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        {% else %}
+        <a href="{% url 'signup' %}" class="cta-button">
+          Sign Up
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1L15 8L8 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M1 8H15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        {% endif %}
+    </div> 
+
+    <div class="info-container">
+        <div class="inner-container"></div>
+        <p class="info-title">VALLUVAR KOTTA<br></p>
+        <button class="book-slots">
+            <a href="{% url 'book_slot' attraction_id=39 %}">Book Slots</a>
+        </button>
+    </div>
+
+    <div class="image-container">
+        <h2 class="image-title">Photos</h2>
+        <div class="slider-container">
+            <div class="slider">
+                <div class="slide">
+                    <img src="https://drive.google.com/thumbnail?id=1-Tif5o0YXKK4756n6Mbq0kqftpu1-J4x" alt="Sample image 1">
+                </div>
+                <div class="slide">
+                    <img src="https://drive.google.com/thumbnail?id=1VvQDrajb5XVtG6Ym_zGQdkfP-pwCtUOX" alt="Sample image 2">
+                </div>
+                <div class="slide">
+                    <img src="https://drive.google.com/thumbnail?id=1Q2pv_oHsSehB32heN7SIrWCTxNf4p8Fe" alt="Sample image 3">
+                </div>
+            </div>
+            
+            <div class="slider-controls">
+                <button class="slider-btn prev">&lt;</button>
+                <button class="slider-btn next">&gt;</button>
+            </div>
+            
+            <div class="dots">
+                <span class="dot active" data-index="0"></span>
+                <span class="dot" data-index="1"></span>
+                <span class="dot" data-index="2"></span>
+                <span class="dot" data-index="3"></span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- New layout for About, Timings, and Address -->
+    <div class="info-section-container">
+        <!-- Left Container - About -->
+        <div class="left-container">
+            <div class="about-container">
+                <h2>About</h2>
+                <p>
+                    Valluvar Kottam, located in Chennai, Tamil Nadu, is a monumental tribute to Thiruvalluvar, the legendary Tamil poet, 
+                    philosopher, and saint who authored the Thirukkural, one of the greatest works of Tamil literature. The Thirukkural, 
+                    consisting of 1,330 couplets, offers timeless wisdom on ethics, governance, love, and morality, making it one of the 
+                    most revered texts in Tamil culture.
+                </p>
+                <p>
+                    Built in 1976 under the guidance of architect V. Ganapati Sthapati, Valluvar Kottam stands as a testament to the rich 
+                    literary and philosophical heritage of Tamil Nadu.
+                </p>
+                <p>
+                    The most striking feature of Valluvar Kottam is its massive stone chariot, which draws inspiration from the traditional 
+                    temple chariots of South India. This grand structure, measuring 39 meters (128 feet) in height, is adorned with intricate 
+                    carvings and houses a life-size statue of Thiruvalluvar, symbolizing his enduring influence on Tamil literature and ethical 
+                    philosophy. The walls surrounding the chariot are inscribed with the entire text of the Thirukkural, making it a unique 
+                    open-air literary museum where visitors can immerse themselves in the profound teachings of the poet.
+                </p>
+            </div>
+        </div>
+        
+        <!-- Right Container - Timings and Address -->
+        <div class="right-container">
+            <!-- Timings at the top -->
+            <div class="timings-container">
+                <h2>Timings</h2>
+                <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+                    <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+                </svg> 8:30 am to 5:30 pm</p>
+            </div>
+            
+            <!-- Address at the bottom -->
+            <div class="address-container">
+                <h2>Address</h2>
+                <p>Tirumurthy Nagar, Nungambakkam, Chennai, Tamil Nadu, 600034.</p>
+                <div class="map-container">
+                    <div class="map-iframe">
+                        <iframe 
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3886.6023470832574!2d80.24047097359072!3d13.060964812915712!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a526667d99e2f49%3A0xfed5622af4d2b50c!2sValluvar%20Kottam%20High%20Rd%2C%20Chennai%2C%20Tamil%20Nadu!5e0!3m2!1sen!2sin!4v1743656479111!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+                            allowfullscreen="" 
+                            loading="lazy" 
+                            referrerpolicy="no-referrer-when-downgrade">
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="custom-container">
+        <h1>What People Think About This Place</h1>
+        
+        <!-- Reviews Display Section -->
+        <div class="reviews-container" id="reviewsContainer">
+            <!-- Sample reviews - these would normally come from a database -->
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">JD</div>
+                        <div>
+                            <span class="reviewer-name">John Doe</span>
+                            <span class="review-date">March 15, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    This website has completely transformed how I manage my business. The interface is intuitive and the customer support is exceptional. I highly recommend it to anyone looking for a comprehensive solution.
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified Purchase</span>
+                    <span class="tag">Business Owner</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">AS</div>
+                        <div>
+                            <span class="reviewer-name">Amanda Smith</span>
+                            <span class="review-date">March 10, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                </div>
+                <div class="review-text">
+                    Great experience overall. The website loaded quickly and I found exactly what I was looking for without any hassle. The checkout process was smooth. Would definitely shop here again!
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified Purchase</span>
+                    <span class="tag">New Customer</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">RJ</div>
+                        <div>
+                            <span class="reviewer-name">Robert Johnson</span>
+                            <span class="review-date">March 5, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                </div>
+                <div class="review-text">
+                    The content is good but I had some issues with navigation. It took me a while to find the information I needed. The design could be more user-friendly.
+                </div>
+                <div class="review-tags">
+                    <span class="tag">Desktop User</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>COMPANY</h3>
+                <a href="#">About</a>   
+                <a href="#">Blog</a>
+                <a href="#">Community</a>
+                <a href="#">Help Center</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>LINKS</h3>
+                <a href="#">Home</a>
+                <a href="#">Monuments</a>
+                <a href="#">Musuems</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>LINKS</h3>
+                <a href="#">Events</a>
+                <a href="#">Private Itenaries</a>
+                <a href="#">Map</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>SUBSCRIPTION</h3>
+                <a href="#">Emails</a>
+                <a href="#">Messages</a>    
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 HistoryGate Inc. <a href="#">Terms</a> <a href="#">Privacy Policy</a></p>
+            <p>Made in Mumbai, India</p>
+            <div class="social-icons">
+                <a href="https://instagram.com">
+                    <img src="img/instagram.png" alt="Instagram">
+                </a>
+                <a href="https://twitter.com">
+                    <img src="img/twitter.png" alt="Twitter">
+                </a>
+                <a href="https://youtube.com">
+                    <img src="img/youtube.png" alt="YouTube">
+                </a>
+                <a href="https://linkedin.com">
+                    <img src="img/linkedin.png" alt="LinkedIn">
+                </a>
+                <a href="https://discord.com">
+                    <img src="img/discord.png" alt="Discord">
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get slider elements
+            const slider = document.querySelector('.slider');
+            const slides = document.querySelectorAll('.slide');
+            const prevBtn = document.querySelector('.prev');
+            const nextBtn = document.querySelector('.next');
+            const dots = document.querySelectorAll('.dot');
+            
+            // Set initial slide index
+            let currentSlide = 0;
+            const slideCount = slides.length;
+            
+            // Function to update slider position
+            function updateSlider() {
+                // Calculate the width of one slide (100%)
+                slider.style.transform = `translateX(-${currentSlide * 100}%)`;
+                
+                // Update active dot
+                dots.forEach((dot, index) => {
+                    if (index === currentSlide) {
+                        dot.classList.add('active');
+                    } else {
+                        dot.classList.remove('active');
+                    }
+                });
+            }
+            
+            // Next slide function
+            function nextSlide() {
+                currentSlide = (currentSlide + 1) % slideCount;
+                updateSlider();
+            }
+            
+            // Previous slide function
+            function prevSlide() {
+                currentSlide = (currentSlide - 1 + slideCount) % slideCount;
+                updateSlider();
+            }
+            
+            // Event listeners for buttons
+            nextBtn.addEventListener('click', nextSlide);
+            prevBtn.addEventListener('click', prevSlide);
+            
+            // Event listeners for dots
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    currentSlide = index;
+                    updateSlider();
+                });
+            });
+            
+            // Optional: Auto slide functionality
+            let slideInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+            
+            // Pause auto slide on hover
+            const sliderContainer = document.querySelector('.slider-container');
+            sliderContainer.addEventListener('mouseenter', () => {
+                clearInterval(slideInterval);
+            });
+            
+            sliderContainer.addEventListener('mouseleave', () => {
+                slideInterval = setInterval(nextSlide, 5000);
+            });
+            
+            // Initialize slider
+            updateSlider();
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Us</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: linear-gradient(135deg, hsl(252, 85%, 93%) 0%, hsl(228, 100%, 95%) 100%);
+            color: #000000;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            font-family: "Bitter", serif;
+            font-optical-sizing: auto;
+            font-weight: 23px;
+            font-style: normal;
+        }
+
+        .nav-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 5%;
+            background-color: #222;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            margin-top: 1.5%;
+            margin-left: 2%;
+            border-radius: 50px;
+        }
+        
+        .nav-items {
+            display: flex;
+            margin-left: 35%;
+            background-color: transparent;
+            border-radius: 100px;
+            padding: 0.6rem 1.2rem;
+        }
+        
+        .nav-items a {
+            color: #a9a9a9;
+            text-decoration: none;
+            font-size: 0.9rem;
+            padding: 0.4rem 1rem;
+            font-weight: 400;
+            transition: color 0.3s ease;
+        }
+        
+        .nav-items a:hover {
+            color: #ffffff;
+        }
+        
+        .cta-button {
+            background-color: #1e1e1e;
+            color: #ffffff;
+            padding: 0.8rem 1.5rem;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .cta-button:hover {
+            background-color: #2a2a2a;
+        }
+
+        /* Account Button Styles */
+        .account {
+            background-color: transparent;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            margin-top: 0%;
+            border: none;
+            color: #a9a9a9;
+        }
+
+        .account i {
+            font-size: 24px;
+            color: #a9a9a9;
+        }
+
+        .account:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+        }
+
+        .account:hover i {
+            color: #ffffff;
+        }
+
+        .account:active {
+            transform: scale(0.95);
+        }
+
+        .dropdown-toggle::after {
+            display: none;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            background-color: #ffffff;
+            min-width: 200px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            z-index: 1;
+            border-radius: 10px;
+            padding: 10px 0;
+            margin-top: 10px;
+        }
+
+        .dropdown-menu.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            color: #333;
+            padding: 10px 20px;
+            text-decoration: none;
+            display: block;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #e71d36;
+        }
+
+        .dropdown-item-text {
+            padding: 10px 20px;
+            font-weight: 500;
+            color: #666;
+            font-size: 14px;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            margin: 8px 0;
+            background-color: #eee;
+            border: none;
+        }
+
+        .header {
+            background: rgb(88, 45, 45);
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 100px 40px;
+            text-align: center;
+            margin-top: 2%;
+            width: 95%;
+            margin-left: 2%;
+            border-radius: 15px;    
+        }
+        
+        .header h1 {
+            font-size: 54px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+        
+        .lets-talk-btn {
+            display: inline-block;
+            background-color: #e71d36;
+            color: white;
+            padding: 12px 30px;
+            border-radius: 50px;
+            margin-top: 15px;
+            text-transform: uppercase;
+            font-size: 14px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .lets-talk-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        .container {
+            display: flex;
+            background-color: #ffffff;
+            color: #333;
+            padding: 60px;
+            margin: 40px auto;
+            width: 90%;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .left-column {
+            flex: 1;
+            padding-right: 40px;
+        }
+        
+        .right-column {
+            flex: 1.5;
+        }
+        
+        .left-column h2 {
+            font-size: 28px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .left-column p {
+            line-height: 1.6;
+            margin-bottom: 20px;
+            color: #666;
+        }
+        
+        .contact-info {
+            margin-top: 30px;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        
+        .contact-info h3 {
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .contact-info p {
+            margin-bottom: 15px;
+            color: #666;
+        }
+        
+        .form-row {
+            display: flex;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+        
+        .form-group {
+            flex: 1;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #e71d36;
+            box-shadow: 0 0 0 2px rgba(231, 29, 54, 0.1);
+        }
+        
+        .form-group textarea {
+            height: 150px;
+            resize: vertical;
+        }
+        
+        .submit-btn {
+            background-color: #e71d36;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            font-size: 14px;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(231, 29, 54, 0.3);
+        }
+        
+        .map-container {
+            height: 300px;
+            width: 100%;
+            margin-top: 30px;
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .map-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .map-controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .map-btn {
+            background-color: white;
+            border: 1px solid #ddd;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .map-btn:hover {
+            background-color: #f8f9fa;
+            transform: scale(1.1);
+        }
+        
+        .notice {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .notice p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .message {
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .success {
+            background-color: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+            border: 1px solid #4CAF50;
+        }
+
+        .error {
+            background-color: rgba(244, 67, 54, 0.1);
+            color: #F44336;
+            border: 1px solid #F44336;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+</head>
+<body>
+    <div class="nav-container">
+        <div class="nav-items">
+            <a href="{% url 'index' %}">Home</a>
+            <a href="{% url 'about'%}">About us</a>
+            <a href="{% url 'map' %}">Map</a>
+            <a href="{% url 'itinerary_create' %}">Pathfindr</a>
+            <a href="{% url 'chatbot' %}">Roamly</a>
+        </div>
+          
+        {% if user.is_authenticated %}
+            <div class="dropdown">
+                <button class="account dropdown-toggle" id="accountDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-person"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="accountDropdown">
+                    <li class="dropdown-item-text">Logged in as: {{ user.username }}</li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item" href="{% url 'account' %}">My Account</a></li>
+                    <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
+                </ul>
+            </div>
+        {% else %}
+        <a href="{% url 'signup' %}" class="cta-button">
+          Sign Up
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 1L15 8L8 15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M1 8H15" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </a>
+        {% endif %}
+    </div>  
+
+    <div class="header">
+        <h1>Contact Us</h1>
+        <div class="lets-talk-btn" onclick="scrollToForm()">Let's Talk</div>
+    </div>
+    
+    <div class="container" id="contactFormContainer">
+        <div class="left-column">
+            <h2>Let's Connect</h2>
+            <p>We'd love to hear from you! At HistoryGate, your support is very important to us. Whether you have questions about our services, want to discuss a potential collaboration, please use the contact form below, and we'll get back to you as soon as possible!</p>
+            
+            <div class="contact-info">
+                <h3>Email Us</h3>
+                <p>companyname@gmail.com</p>
+                
+                <h3>Call Us</h3>
+                <p>7718937309</p>
+            </div>
+        </div>
+        
+        <div class="right-column">
+            <!-- Display success/error message if any -->
+            <div id="formMessage" class="message" style="display: none;"></div>
+            
+            <form id="contactForm" method="POST" action="javascript:void(0);" onsubmit="sendEmail(); return false;">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="firstName">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="lastName">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Phone</label>
+                        <input type="tel" id="phone" name="phone">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="companyName">Company Name</label>
+                    <input type="text" id="companyName" name="companyName">
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="companyCity">Company City</label>
+                        <input type="text" id="companyCity" name="companyCity">
+                    </div>
+                    <div class="form-group">
+                        <label for="companyState">Company State</label>
+                        <select id="companyState" name="companyState">
+                            <option value=""></option>
+                            <option value="AL">Mumbai</option>
+                            <option value="AK">Hyderabad</option>
+                            <option value="AZ">Chennai</option>
+                            <option value="AR">Gujurat</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="message">Any Message</label>
+                    <textarea id="message" name="message" required></textarea>
+                </div>
+                
+                <button type="submit" class="submit-btn">Submit</button>
+            </form>
+            
+            <div class="map-container">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3668.7941074022788!2d72.8558439!3d19.243616199999998!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7b13affffffff%3A0xfd071f1d3a7844ef!2sSt.%20Francis%20Institute%20of%20Technology!5e1!3m2!1sen!2sin!4v1745952137368!5m2!1sen!2sin" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function scrollToForm() {
+            const formContainer = document.getElementById('contactFormContainer');
+            formContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function sendEmail() {
+            const form = document.getElementById('contactForm');
+            const messageDiv = document.getElementById('formMessage');
+            
+            // Get form data
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                companyName: document.getElementById('companyName').value,
+                companyCity: document.getElementById('companyCity').value,
+                companyState: document.getElementById('companyState').value,
+                message: document.getElementById('message').value
+            };
+            
+            // Here you would typically send this data to your backend
+            // For demo purposes, we'll just simulate a successful submission
+            
+            // Display success message
+            messageDiv.className = "message success";
+            messageDiv.innerText = "Thank you for your message! We'll get back to you soon.";
+            messageDiv.style.display = "block";
+            
+            // Reset the form
+            form.reset();
+            
+            // Alternative: You could use fetch to send data to a backend
+            /*
+            fetch('/api/contact', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData),
+            })
+            .then(response => response.json())
+            .then(data => {
+                messageDiv.className = "message success";
+                messageDiv.innerText = "Thank you for your message! We'll get back to you soon.";
+                messageDiv.style.display = "block";
+                form.reset();
+            })
+            .catch((error) => {
+                messageDiv.className = "message error";
+                messageDiv.innerText = "There was an error sending your message. Please try again later.";
+                messageDiv.style.display = "block";
+            });
+            */
+        }
+        
+        // Optional: Add form validation
+        document.addEventListener('DOMContentLoaded', function() {
+            const dropdownToggle = document.getElementById('accountDropdown');
+            if (dropdownToggle) {
+                dropdownToggle.addEventListener('click', function() {
+                    const dropdownMenu = document.querySelector('.dropdown-menu');
+                    dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

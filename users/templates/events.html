@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Events - HistoryGate</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        .events-container {
+            margin-top: 80px;
+            padding: 20px;
+        }
+        
+        .event-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .event-card {
+            background: #1a1a1a;
+            border-radius: 10px;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .event-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .event-info {
+            padding: 15px;
+        }
+        
+        .event-name {
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #ffcc00;
+        }
+        
+        .event-description {
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .event-details {
+            display: flex;
+            justify-content: space-between;
+            color: #888;
+            font-size: 0.9em;
+        }
+        
+        .book-button {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .book-button:hover {
+            background-color: #e6b800;
+        }
+    </style>
+</head>
+<body>
+    {% include 'navbar.html' %}
+    
+    <div class="events-container">
+        <h1>Events</h1>
+        <div class="event-grid">
+            {% for event in events %}
+            <div class="event-card">
+                <img src="{{ event.image.url }}" alt="{{ event.name }}" class="event-image">
+                <div class="event-info">
+                    <h2 class="event-name">{{ event.name }}</h2>
+                    <p class="event-description">{{ event.info|truncatewords:30 }}</p>
+                    <div class="event-details">
+                        <span><i class="fas fa-clock"></i> {{ event.opening_time|time:"g:i A" }} - {{ event.closing_time|time:"g:i A" }}</span>
+                        <span><i class="fas fa-map-marker-alt"></i> {{ event.address }}</span>
+                    </div>
+                    <a href="{% url 'book_slot' event.id %}" class="book-button">Book Tickets</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% include 'footer.html' %}
+</body>
+</html> 

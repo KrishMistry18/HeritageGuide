@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="account-container">
+    <div class="account-card">
+        <div class="profile-header">
+            <h2>{{ user.get_full_name|default:user.username }}</h2>
+            <p>@{{ user.username }}</p>
+        </div>
+        
+        <div class="user-info">
+            <div class="info-item">
+                <label>Username:</label>
+                <span>{{ user.username }}</span>
+            </div>
+            <div class="info-item">
+                <label>Email:</label>
+                <span>{{ user.email }}</span>
+            </div>
+            {% if profile %}
+            <div class="info-item">
+                <label>Phone Number:</label>
+                <span>{{ profile.phone_number }}</span>
+            </div>
+            <div class="info-item">
+                <label>Birth Date:</label>
+                <span>{{ profile.birth_date|date:"F d, Y" }}</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="settings">
+            <h3>Settings</h3>
+            <form method="post" action="{% url 'update_profile' %}" class="settings-form">
+                {% csrf_token %}
+                <div class="setting-item">
+                    <label for="phone_number">Phone Number:</label>
+                    <input type="tel" id="phone_number" name="phone_number" value="{{ profile.phone_number|default:'' }}" class="form-input">
+                </div>
+                <div class="setting-item">
+                    <label for="birth_date">Birth Date:</label>
+                    <input type="date" id="birth_date" name="birth_date" value="{{ profile.birth_date|date:'Y-m-d'|default:'' }}" class="form-input">
+                </div>
+                <button type="submit" class="update-button">Update Profile</button>
+            </form>
+        </div>
+
+        <form method="post" action="{% url 'logout' %}" class="logout-form">
+            {% csrf_token %}
+            <button type="submit" class="logout-btn">Logout</button>
+        </form>
+    </div>
+</div>
+
+<style>
+    .account-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-color: #f8f9fa;
+        padding: 2rem;
+    }
+
+    .account-card {
+        background: white;
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 500px;
+        text-align: center;
+    }
+
+    .profile-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #eee;
+    }
+
+    .profile-header h2 {
+        color: #2c3e50;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .profile-header p {
+        color: #7f8c8d;
+        font-size: 1rem;
+    }
+
+    .user-info {
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .info-item label {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .info-item span {
+        color: #7f8c8d;
+    }
+
+    .settings {
+        margin-bottom: 2rem;
+        text-align: left;
+    }
+
+    .settings h3 {
+        color: #2c3e50;
+        margin-bottom: 1rem;
+        font-size: 1.2rem;
+    }
+
+    .settings-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .setting-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .setting-item label {
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    .form-input {
+        padding: 0.75rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+
+    .form-input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        outline: none;
+    }
+
+    .update-button {
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-top: 1rem;
+    }
+
+    .update-button:hover {
+        background: #2980b9;
+    }
+
+    .logout-form {
+        margin-top: 1rem;
+    }
+
+    .logout-btn {
+        display: block;
+        width: 100%;
+        background: #e74c3c;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.75rem;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+
+    .logout-btn:hover {
+        background: #c0392b;
+    }
+
+    @media (max-width: 768px) {
+        .account-container {
+            padding: 1rem;
+        }
+
+        .account-card {
+            padding: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}

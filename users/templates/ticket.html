@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Ticket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .ticket-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            text-align: center;
+            border: 2px dashed #333;
+        }
+        .ticket-header {
+            font-size: 24px;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 10px;
+        }
+        .ticket-details {
+            text-align: left;
+            font-size: 18px;
+        }
+        .ticket-details p {
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .highlight {
+            font-weight: normal;
+            color: #555;
+        }
+        .cancel-button {
+            margin-top: 20px;
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: red;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .cancel-button:hover {
+            background-color: darkred;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket-container">
+        <div class="ticket-header">HistoryGate</div>
+        <div class="ticket-details">
+            <p>Name: <span class="highlight">{{ user_name }}</span></p>
+            <p>Venue: <span class="highlight">{{ site_name }}</span></p>
+            <p>Date: <span class="highlight">{{ booking_date }}</span></p>
+            <p>No of Slots: <span class="highlight">{{ num_persons }}</span></p>
+        </div>
+        <form method="POST" action="/cancel/">
+            {% csrf_token %}
+            <button type="submit" class="cancel-button">Cancel Booking</button>
+        </form>
+    </div>
+
+</body>
+</html>
+

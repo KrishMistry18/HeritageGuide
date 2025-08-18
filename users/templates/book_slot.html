@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book a Visit - {{ museum.name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .header {
+            background-color: #343a40;
+            color: white;
+            padding: 1rem 0;
+        }
+        .museum-image {
+            max-height: 300px;
+            object-fit: cover;
+            width: 100%;
+        }
+        .booking-card {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .summary-card {
+            background-color: #f8f9fa;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h2>{{ museum.name }}</h2>
+                <div>
+                    <a href="{% url 'museum_list' %}" class="btn btn-outline-light">
+                        <i class="fas fa-arrow-left"></i> Back to Museums
+                    </a>
+                    <a href="{% url 'my_bookings' %}" class="btn btn-outline-light ms-2">
+                        <i class="fas fa-ticket-alt"></i> My Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container mt-4">
+        <h1>Book a Visit to {{ museum.name }}</h1>
+
+        <!-- Message Alerts -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        <div class="row mt-4">
+            <!-- Museum Info -->
+            <div class="col-md-6">
+                {% if museum.image %}
+                    <img src="{{ museum.image.url }}" alt="{{ museum.name }}" class="img-fluid rounded museum-image">
+                {% else %}
+                    <div class="bg-secondary text-white p-5 text-center rounded museum-image">
+                        <i class="fas fa-landmark fa-5x mb-3"></i>
+                        <h3>{{ museum.name }}</h3>
+                    </div>
+                {% endif %}
+                
+                <div class="mt-3">
+                    <h4>About {{ museum.name }}</h4>
+                    <p>{{ museum.description }}</p>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-map-marker-alt text-danger me-2"></i>
+                        <strong>Location:</strong> {{ museum.address }}
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="fas fa-info-circle text-primary me-2"></i>
+                        <p class="mb-0">Selecting a date will show you available time slots for your visit.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Booking Form -->
+            <div class="col-md-6">
+                <div class="card booking-card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">Book Your Slot</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="get" id="bookingForm" action="book-slot/">
+                            {% csrf_token %}
+                            
+                            {% if form.non_field_errors %}
+                                <div class="alert alert-danger">
+                                    {{ form.non_field_errors }}
+                                </div>
+                            {% endif %}
+                            
+                            <div class="form-group mb-3">
+                                <label for="{{ form.date.id_for_label }}" class="form-label">Select Date</label>
+                                <input type="date" name="date" id="id_date" class="form-control" 
+                                       min="{{ form.fields.date.widget.attrs.min }}" required>
+                                {% if form.date.errors %}
+                                    <div class="text-danger">
+                                        {{ form.date.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">{{ form.date.help_text }}</small>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="id_time_slot" class="form-label">Select Time Slot</label>
+                                <select name="time_slot" id="id_time_slot" class="form-control" required>
+                                    <option value="">Select a date first</option>
+                                </select>
+                                {% if form.time_slot.errors %}
+                                    <div class="text-danger">
+                                        {{ form.time_slot.errors }}
+                                    </div>
+                                {% endif %}
+                                <div id="slotDetails" class="mt-2 d-none">
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-users"></i> Available: <span id="availableCount">0</span>
+                                    </span>
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-tag"></i> Price: $<span id="slotPrice">0</span> per person
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label for="id_visitors" class="form-label">Number of Visitors</label>
+                                <input type="number" name="visitors" id="id_visitors" class="form-control" 
+                                       min="1" max="10" value="1" required>
+                                {% if form.visitors.errors %}
+                                    <div class="text-danger">
+                                        {{ form.visitors.errors }}
+                                    </div>
+                                {% endif %}
+                                <small class="form-text text-muted">{{ form.visitors.help_text }}</small>
+                            </div>
+                            
+                            <div class="card mb-3 d-none" id="bookingSummary">
+                                <div class="card-header bg-light">
+                                    <h5 class="mb-0">Booking Summary</h5>
+                                </div>
+                                <div class="card-body summary-card">
+                                    <p>
+                                        <i class="fas fa-landmark me-2"></i>
+                                        <strong>Museum:</strong> {{ museum.name }}
+                                    </p>
+                                    <p>
+                                        <i class="fas fa-calendar me-2"></i>
+                                        <strong>Date:</strong> <span id="summaryDate"></span>
+                                    </p>
+                                    <p>
+                                        <i class="fas fa-clock me-2"></i>
+                                        <strong>Time:</strong> <span id="summaryTime"></span>
+                                    </p>
+                                    <p>
+                                        <i class="fas fa-users me-2"></i>
+                                        <strong>Visitors:</strong> <span id="summaryVisitors">1</span>
+                                    </p>
+                                    <p>
+                                        <i class="fas fa-money-bill me-2"></i>
+                                        <strong>Total Price:</strong> $<span id="summaryPrice">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100" id="bookButton" disabled>
+                                <i class="fas fa-ticket-alt me-2"></i> Book Now
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white mt-5 py-3">
+        <div class="container text-center">
+            <p>© 2025 Museum Booking System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Store available slots data
+        let availableSlots = [];
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.getElementById('id_date');
+            const slotSelect = document.getElementById('id_time_slot');
+            const visitorsInput = document.getElementById('id_visitors');
+            const slotDetails = document.getElementById('slotDetails');
+            const availableCount = document.getElementById('availableCount');
+            const slotPrice = document.getElementById('slotPrice');
+            const bookingSummary = document.getElementById('bookingSummary');
+            const summaryDate = document.getElementById('summaryDate');
+            const summaryTime = document.getElementById('summaryTime');
+            const summaryVisitors = document.getElementById('summaryVisitors');
+            const summaryPrice = document.getElementById('summaryPrice');
+            const bookButton = document.getElementById('bookButton');
+            
+            // Format date for display
+            function formatDate(dateStr) {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+            
+            // Update booking summary
+            function updateSummary() {
+                const selectedSlotId = slotSelect.value;
+                const visitors = parseInt(visitorsInput.value);
+                
+                if (!selectedSlotId) return;
+                
+                const selectedSlot = availableSlots.find(slot => slot.id == selectedSlotId);
+                if (!selectedSlot) return;
+                
+                summaryDate.textContent = formatDate(dateInput.value);
+                summaryTime.textContent = `${selectedSlot.start_time} - ${selectedSlot.end_time}`;
+                summaryVisitors.textContent = visitors;
+                
+                const totalPrice = (parseFloat(selectedSlot.price) * visitors).toFixed(2);
+                summaryPrice.textContent = totalPrice;
+                
+                bookingSummary.classList.remove('d-none');
+                bookButton.disabled = false;
+            }
+            
+            // Fetch available slots when date changes
+            dateInput.addEventListener('change', function() {
+                const date = this.value;
+                if (!date) return;
+                
+                fetch(`/bookings/available-slots/?museum_id={{ museum.id }}&date=${date}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        availableSlots = data.slots;
+                        
+                        // Update time slot dropdown
+                        slotSelect.innerHTML = '';
+                        
+                        if (availableSlots.length === 0) {
+                            const option = document.createElement('option');
+                            option.value = '';
+                            option.textContent = 'No available slots for this date';
+                            slotSelect.appendChild(option);
+                            slotDetails.classList.add('d-none');
+                            bookButton.disabled = true;
+                            bookingSummary.classList.add('d-none');
+                        } else {
+                            const defaultOption = document.createElement('option');
+                            defaultOption.value = '';
+                            defaultOption.textContent = 'Select a time slot';
+                            slotSelect.appendChild(defaultOption);
+                            
+                            availableSlots.forEach(slot => {
+                                const option = document.createElement('option');
+                                option.value = slot.id;
+                                option.textContent = `${slot.start_time} - ${slot.end_time}`;
+                                slotSelect.appendChild(option);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching available slots:', error);
+                    });
+            });
+            
+            // Update slot details when slot selection changes
+            slotSelect.addEventListener('change', function() {
+                const selectedSlotId = this.value;
+                if (!selectedSlotId) {
+                    slotDetails.classList.add('d-none');
+                    bookingSummary.classList.add('d-none');
+                    bookButton.disabled = true;
+                    return;
+                }
+                
+                const selectedSlot = availableSlots.find(slot => slot.id == selectedSlotId);
+                if (!selectedSlot) return;
+                
+                availableCount.textContent = selectedSlot.available;
+                slotPrice.textContent = selectedSlot.price;
+                slotDetails.classList.remove('d-none');
+                
+                updateSummary();
+            });
+            
+            // Update summary when visitors count changes
+            visitorsInput.addEventListener('change', function() {
+                if (slotSelect.value) {
+                    updateSummary();
+                }
+            });
+            
+            // Set minimum date as today
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HistoryGate</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        body {
+            background: linear-gradient(135deg, hsl(252, 85%, 93%) 0%, hsl(228, 100%, 95%) 100%);
+            color: #000000;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .nav-container {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 10px 5%;
+              background-color: #222;
+              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+              width:95%;
+              margin-top:1.5%;
+              margin-left:2%;
+              border-radius: 50px;
+          }
+          
+          .nav-items {
+              display: flex;
+              margin-left:35%;
+              background-color:transparent;
+              border-radius: 100px;
+              padding: 0.6rem 1.2rem;
+          }
+          
+          .nav-items a {
+              color: #a9a9a9;
+              text-decoration: none;
+              font-size: 0.9rem;
+              padding: 0.4rem 1rem;
+              font-weight: 400;
+              transition: color 0.3s ease;
+          }
+          
+          .nav-items a:hover {
+              color: #ffffff;
+          }
+          
+          .cta-button {
+              background-color: #1e1e1e;
+              color: #ffffff;
+              padding: 0.8rem 1.5rem;
+              border-radius: 100px;
+              font-weight: 500;
+              font-size: 0.9rem;
+              text-decoration: none;
+              transition: background-color 0.3s ease;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              border: 1px solid rgba(255, 255, 255, 0.1);
+          }
+          
+          .cta-button:hover {
+              background-color: #2a2a2a;
+          } 
+
+        /* Style for the Account Button */
+        .account {
+            background-color: transparent;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease-in-out;
+            margin-top:0%;
+        }
+
+        .account i {
+            font-size: 24px;
+            color: white;
+        }
+
+        .account:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: #ffcc00;
+        }
+
+        .account:active {
+            transform: scale(0.95);
+        }
+
+        .info-container{
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+            margin-bottom:100px;
+            margin-right:260px;
+            margin-left:5%;
+            margin-top:1%;
+            height:480px;
+            width:90%;
+            border-radius:15px;
+        }
+
+        .inner-container{
+            background-color: rgb(87, 85, 85);
+            transform: translateY(30px);
+            margin-left:90px;
+            width:261px;
+            height:416px;
+            border-radius: 10px;
+        }
+
+        .info-title{
+            margin-left:400px;
+            margin-top:-170px;
+            font-size: 40px;
+            font:bold;
+            font-family: 'Courier New', Courier, monospace;
+            color:rgb(0, 0, 0);
+        }
+
+        .info-desc{
+            font-size:25px;
+            margin-left:400px;
+        }
+
+        .image-title{
+            transform: translateY(40%);
+            margin-left:100px;
+            margin-right:50px;
+            font-size: 34px;
+            color:rgb(0, 0, 0);
+        }
+
+        .image-container{
+            margin-left:10%;
+            margin-top:-5%;
+            width:80%;
+            height:500px;
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+            border-radius: 15px ;
+        }
+
+        .slider-container {
+            position: relative;
+            width: 90%;
+            max-width: 1600px;
+            height: 400px;
+            overflow: hidden;
+            margin: 8% auto 10%;
+            margin-top:2%;
+            margin-left:4%;
+            margin-bottom:3%;
+        }
+
+        .slider {
+            display: flex;
+            transition: transform 0.5s ease-in-out;
+            height: 60%;
+        }
+
+        .slide {
+            min-width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .slide img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .slider-controls {
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            transform: translateY(-50%);
+        }
+
+        .slider-btn {
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            padding: 1rem;
+            cursor: pointer;
+            font-size: 1.5rem;
+            z-index: 10;
+        }
+
+        .slider-btn:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+
+        .dots {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: white;
+        }
+
+        /* New containers layout */
+        .info-section-container {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1350px;
+            margin: 40px auto;
+            gap: 30px;
+            padding: 0 20px;
+        }
+
+        .left-container {
+            flex: 1.5;
+        }
+
+        .right-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .about-container, .timings-container, .address-container {
+            border-radius: 15px;
+            padding: 20px;
+            color: white;
+            background: rgba(255, 255, 255, 0.25);  /* Semi-transparent background */
+            backdrop-filter: blur(8px);
+            border: 3px solid rgba(255, 255, 255, 0.18);  /* Subtle border */
+            box-shadow: 0 4px 30px rgba(148, 33, 33, 0.1);
+        }
+
+        .about-container h2, .timings-container h2, .address-container h2 {
+            font-size: 30px;
+            font-weight: bold;
+            color: rgb(0, 0, 0);
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #333;
+        }
+
+        .about-container p, .timings-container p, .address-container p {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #000000;
+            margin-bottom: 15px;
+        }
+
+        .maps-button{
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .maps-button:hover {
+            background-color: #e6b800;
+        }
+
+        .book-slots {
+            background-color: #ffcc00;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            padding: 12px 25px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            transform: translateY(40px);
+            margin-left:400px;
+        }
+
+        .book-slots:hover {
+            background-color: #e6b800;
+        }
+
+        .custom-container {
+            max-width: 1400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: rgb(0, 0, 0);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            color: white;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .reviews-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .review {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+            transition: transform 0.3s ease;
+            border-top: 4px solid #3498db;
+            color: black;
+        }
+
+        .review:hover {
+            transform: translateY(-5px);
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #dfe6e9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-weight: bold;
+            color: #3498db;
+            font-size: 20px;
+        }
+
+        .reviewer-name {
+            font-weight: bold;
+            font-size: 16px;
+            display: block;
+        }
+
+        .review-date {
+            color: #777;
+            font-size: 14px;
+            margin-top: 3px;
+        }
+
+        .review-rating {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .star {
+            color: #ffc107;
+            margin-right: 2px;
+            font-size: 18px;
+        }
+
+        .review-text {
+            line-height: 1.6;
+            color: #555;
+            font-size: 15px;
+            border-left: 3px solid #f0f0f0;
+            padding-left: 15px;
+            margin-bottom: 10px;
+        }
+
+        .review-tags {
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+
+        .tag {
+            background-color: #ecf0f1;
+            color: #7f8c8d;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .verified {
+            background-color: #e3f7ed;
+            color: #1abc9c;
+        }
+
+        footer {
+            background-color: #0D1117;
+            color: white;
+            padding: 40px 20px;
+        }
+
+        .footer-container {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2A2D32;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 150px;
+            margin-bottom: 20px;
+            padding: 0 15px;
+        }
+
+        .footer-section h3 {
+            font-size: 14px;
+            color: #8B949E;
+            margin-bottom: 15px;
+        }
+
+        .footer-section a {
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            margin-bottom: 10px;
+            transition: color 0.3s ease;
+        }
+
+        .footer-section a:hover {
+            color: #58A6FF;
+        }
+
+        .footer-bottom {
+            text-align: center;
+            margin-top: 20px;
+            padding: 0 15px;
+        }
+
+        .footer-bottom p {
+            font-size: 14px;
+            color: #8B949E;
+            margin: 5px 0;
+        }
+
+        .footer-bottom a {
+            color: #58A6FF;
+            text-decoration: none;
+        }
+
+        .social-icons {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .social-icons a {
+            margin: 5px;
+        }
+
+        .social-icons img {
+            width: 24px;
+            cursor: pointer;
+            filter: grayscale(1);
+            transition: filter 0.3s ease;
+        }
+
+        .social-icons img:hover {
+            filter: grayscale(0);
+        }
+
+        /* Responsive styles */
+        @media screen and (max-width: 1024px) {
+            .info-section-container {
+                flex-direction: column;
+            }
+            .right-container {
+                width: 100%;
+            }
+        }
+
+        @media screen and (max-width: 768px) {
+            .header {
+                margin-left: 20px;
+            }
+            .event-carousel {
+                margin-left: 20px;
+            }
+            .info-container {
+                margin-right: 100px;
+            }
+            .info-title, .info-desc {
+                margin-left: 200px;
+                font-size: 32px;
+            }
+            .book-slots {
+                margin-left: 200px;
+            }
+            .image-title{
+                margin-left:30px;
+            }
+            .inner-container {
+                display: none !important;
+            }
+            .book-slots {
+                margin-left: 10px;
+                margin-top:200px;
+            }
+        }
+
+        @media screen and (max-width: 430px) {
+            .header {
+                flex-direction: column;
+                align-items: center;
+                margin-left: 0;
+                text-align: center;
+            }
+            .event-carousel {
+                margin-left: 0;
+                padding: 10px;
+                gap: 10px;
+            }
+            .event-card {
+                width: 150px;
+            }
+            .info-container {
+                margin-right: 0;
+                height: auto;
+                text-align: center;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .inner-container {
+                display: none !important;
+            }
+            .info-title, .info-desc {
+                margin-left: 0;
+                font-size: 24px;
+                text-align: center;
+            }
+            .book-slots {
+                margin-left: 0;
+                text-align: center;
+            }
+            .about-container {
+                margin-left: 0;
+                padding: 10px;
+            }
+            .book-slots {
+                margin-left: 10px;
+                margin-top:200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">HistoryGate</a>
+            </div>
+            <div class="nav-links">
+                <div class="dropdown">
+                    <a href="monuments.html" class="nav-item">Monuments<i class="fas fa-chevron-down"></i></a>
+                </div>
+                <div class="dropdown">
+                    <a href="museums.html" class="nav-item">Museums<i class="fas fa-chevron-down"></i></a>
+                </div>
+                <div class="dropdown">
+                    <a href="event.html" class="nav-item">Events<i class="fas fa-chevron-down"></i></a>
+                </div>
+            </div>
+            <div class="auth-buttons">
+                <form class="search-form">
+                    <input type="search" placeholder="Search here ...">
+                    <i class="fa fa-search"></i>
+                </form>
+                <a href="login.html"><button class="sign-up-btn">Sign up</button></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="info-container">
+        <div class="inner-container"></div>
+        <p class="info-title">Historical Reenactments <br></p>
+        <button class="book-slots"><a href="bookslots.html">Book Slots</a></button>
+    </div>
+
+    <h2 class="image-title">Photos</h2>
+    <div class="slider-container">
+        <div class="slider">
+            <div class="slide">
+                <img src="https://picsum.photos/1000/500?random=1" alt="Sample image 1">
+            </div>
+            <div class="slide">
+                <img src="https://picsum.photos/1000/500?random=2" alt="Sample image 2">
+            </div>
+            <div class="slide">
+                <img src="https://picsum.photos/1000/500?random=3" alt="Sample image 3">
+            </div>
+            <div class="slide">
+                <img src="https://picsum.photos/1000/500?random=4" alt="Sample image 4">
+            </div>
+        </div>
+        
+        <div class="slider-controls">
+            <button class="slider-btn prev">&lt;</button>
+            <button class="slider-btn next">&gt;</button>
+        </div>
+        
+        <div class="dots">
+            <span class="dot active" data-index="0"></span>
+            <span class="dot" data-index="1"></span>
+            <span class="dot" data-index="2"></span>
+            <span class="dot" data-index="3"></span>
+        </div>
+    </div>
+    
+
+    <div class="about-container">
+        <h2>About</h2>
+        <p>
+            Experience history coming to life through live-action reenactments of key historical events. 
+            Actors will recreate significant moments from history, providing an immersive storytelling 
+            experience. Attendees can interact with the performers, learn historical facts, and gain a deeper 
+            understanding of past civilizations.
+        </p>
+    </div>
+
+    <div class="about-container">
+        <h2>Timings</h2>
+        <p><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock" viewBox="0 0 16 16">
+            <path d="M8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71z"/>
+            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m7-8A7 7 0 1 1 1 8a7 7 0 0 1 14 0"/>
+          </svg> 10:30 am to 6:30 pm</p>
+    </div>
+
+    <div class="about-container">
+        <h2>Address</h2>
+        <p>159-161, Mahatma Gandhi Road, Kala Ghoda, Fort, Mumbai, Maharashtra 400001</p>
+        <button class="maps-button">Check On Maps</button>
+    </div>
+    
+    <div class="custom-container">
+        <h1>What People Think About This Place</h1>
+        
+        <!-- Reviews Display Section -->
+        <div class="reviews-container" id="reviewsContainer">
+            <!-- Sample reviews - these would normally come from a database -->
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">JD</div>
+                        <div>
+                            <span class="reviewer-name">John Doe</span>
+                            <span class="review-date">March 15, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                </div>
+                <div class="review-text">
+                    This website has completely transformed how I manage my business. The interface is intuitive and the customer support is exceptional. I highly recommend it to anyone looking for a comprehensive solution.
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified Purchase</span>
+                    <span class="tag">Business Owner</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">AS</div>
+                        <div>
+                            <span class="reviewer-name">Amanda Smith</span>
+                            <span class="review-date">March 10, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                </div>
+                <div class="review-text">
+                    Great experience overall. The website loaded quickly and I found exactly what I was looking for without any hassle. The checkout process was smooth. Would definitely shop here again!
+                </div>
+                <div class="review-tags">
+                    <span class="tag verified">Verified Purchase</span>
+                    <span class="tag">New Customer</span>
+                </div>
+            </div>
+            
+            <div class="review">
+                <div class="review-header">
+                    <div class="reviewer-info">
+                        <div class="avatar">RJ</div>
+                        <div>
+                            <span class="reviewer-name">Robert Johnson</span>
+                            <span class="review-date">March 5, 2025</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-rating">
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                    <span class="star" style="color: #ddd;">★</span>
+                </div>
+                <div class="review-text">
+                    The content is good but I had some issues with navigation. It took me a while to find the information I needed. The design could be more user-friendly.
+                </div>
+                <div class="review-tags">
+                    <span class="tag">Desktop User</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>COMPANY</h3>
+                <a href="#">About</a>   
+                <a href="#">Blog</a>
+                <a href="#">Community</a>
+                <a href="#">Help Center</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>LINKS</h3>
+                <a href="#">Home</a>
+                <a href="#">Monuments</a>
+                <a href="#">Musuems</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>LINKS</h3>
+                <a href="#">Events</a>
+                <a href="#">Private Itenaries</a>
+                <a href="#">Map</a>
+            </div>
+
+            <div class="footer-section">
+                <h3>SUBSCRIPTION</h3>
+                <a href="#">Emails</a>
+                <a href="#">Messages</a>    
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>© 2025 HistoryGate Inc. <a href="#">Terms</a> <a href="#">Privacy Policy</a></p>
+            <p>Made in Mumbai, India</p>
+            <div class="social-icons">
+                <a href="https://instagram.com">
+                    <img src="img/instagram.png" alt="Instagram">
+                </a>
+                <a href="https://twitter.com">
+                    <img src="img/twitter.png" alt="Twitter">
+                </a>
+                <a href="https://youtube.com">
+                    <img src="img/youtube.png" alt="YouTube">
+                </a>
+                <a href="https://linkedin.com">
+                    <img src="img/linkedin.png" alt="LinkedIn">
+                </a>
+                <a href="https://discord.com">
+                    <img src="img/discord.png" alt="Discord">
+                </a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let prevScrollPos = window.pageYOffset;
+        const navbar = document.querySelector(".navbar");
+        let isScrolling;
+    
+        window.addEventListener("scroll", () => {
+            if (isScrolling) return;
+            isScrolling = true;
+    
+            requestAnimationFrame(() => {
+                let currentScrollPos = window.pageYOffset;
+    
+                if (prevScrollPos > currentScrollPos) {
+                    navbar.style.top = "0";  // Show navbar when scrolling up
+                } else {
+                    navbar.style.top = "-80px";  // Hide navbar when scrolling down
+                }
+    
+                prevScrollPos = currentScrollPos;
+                isScrolling = false;
+            });
+        });
+    </script>
+
+    <div class="stars"></div>
+</body>
+</html>
