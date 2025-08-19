@@ -107,9 +107,6 @@ python manage.py populate_attractions
 ## 🤝 Contributing
 PRs and suggestions are welcome! If you find a bug or have an idea, open an issue.
 
-## 📜 License
-MIT (or add your preferred license).
-
 ---
 
 ## 📞 **Contact**
@@ -121,5 +118,6 @@ MIT (or add your preferred license).
 ---
 
 **Built with ❤️ by Krish Mistry** 
+
 
 
