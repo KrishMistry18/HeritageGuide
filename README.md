@@ -113,11 +113,12 @@ PRs and suggestions are welcome! If you find a bug or have an idea, open an issu
 
 - Project: <https://github.com/KrishMistry18/EduCycle>
 - Email: <mistrykrish2005@gmail.com>
-- LinkedIn: <https://www.linkedin.com/in/krish-mistry-0290522b7>
+- LinkedIn: <https://www.linkedin.com/in/krishmistry18>
 
 ---
 
 **Built with ❤️ by Krish Mistry** 
+
 
 
 
