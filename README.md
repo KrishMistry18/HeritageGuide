@@ -1,4 +1,4 @@
-﻿# HistoryGate 🏛️🗺️
+﻿# HeritageGuide 🏛️🗺️
 
 Discover cities like a local. HistoryGate is a Django-powered travel companion that blends an elegant map UI, curated attractions, itinerary planning, and simple slot booking — all with a privacy‑friendly, keyless default map.
 
