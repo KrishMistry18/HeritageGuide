@@ -1,7 +1,13 @@
 Django==5.2
 django-allauth==65.0.2
 python-dotenv==1.0.1
-Pillow==10.4.0
+Pillow>=11.0.0
 openai==1.47.0
 requests==2.32.3
-
+supabase==2.15.3
+dj-database-url==2.2.0
+psycopg[binary]>=3.2.10
+anthropic
+gunicorn==23.0.0
+whitenoise==6.9.0
+cryptography

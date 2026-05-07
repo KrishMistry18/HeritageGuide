@@ -1,316 +1,606 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Your Multi-City Itinerary</title>
-    <style>
-        /* Global Styles */
-        body {
-            font-family: 'Arial', sans-serif;
-            line-height: 1.6;
-            background-color: #f4f4f4;
-            color: #333;
-            margin: 0;
-            padding: 0;
-        }
+{% extends "base.html" %}
+{% load static %}
 
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+{% block title %}Create Itinerary — HeritageGuide{% endblock %}
 
-        /* Form Styles */
-        .itinerary-creation-container {
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            margin-top: 20px;
-        }
+{% block extra_css %}
+<style>
+    .create-wrapper {
+        max-width: 860px;
+        margin: 36px auto;
+    }
 
-        h1 {
-            color: #2c3e50;
-            margin-bottom: 30px;
-            text-align: center;
-        }
+    .create-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
 
-        .form-group {
-            margin-bottom: 25px;
-        }
+    .create-header .icon-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 24px rgba(124,58,237,.35);
+    }
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #34495e;
-        }
+    .create-header .icon-circle i {
+        font-size: 1.6rem;
+        color: #fff;
+    }
 
-        input[type="text"],
-        input[type="number"],
-        input[type="date"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-        }
+    .create-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
+    }
 
-        .cities-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-            margin-top: 10px;
-        }
-        
-        .interests-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 10px;
-            margin-top: 10px;
-        }
+    .create-header p {
+        color: var(--text-muted);
+        font-size: .95rem;
+    }
 
-        .city-item {
-            display: flex;
-            align-items: center;
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-            transition: all 0.3s ease;
-        }
+    .form-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 36px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(124,58,237,.1);
+    }
 
-        .city-item:hover {
-            background-color: #f8f9fa;
-            border-color: #007bff;
-        }
+    .form-section {
+        margin-bottom: 28px;
+    }
 
-        .city-item input[type="checkbox"] {
-            margin-right: 10px;
-            transform: scale(1.2);
-        }
+    .form-section-title {
+        font-size: .75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--primary);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 
-        .city-item label {
-            margin: 0;
-            cursor: pointer;
-        }
-        
-        .interest-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px;
-            border: 1px solid #e0e0e0;
-            border-radius: 4px;
-        }
+    .form-section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--border);
+    }
 
-        .interest-item input[type="checkbox"] {
-            transform: scale(1.2);
-        }
+    .form-group {
+        margin-bottom: 18px;
+    }
 
-        .interest-item label {
-            margin: 0;
-            cursor: pointer;
-        }
+    .form-group label {
+        display: block;
+        font-size: .875rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 7px;
+    }
 
-        .date-inputs {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
+    .form-group input[type="text"],
+    .form-group input[type="number"],
+    .form-group input[type="date"],
+    .form-group select {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: .9rem;
+        font-family: 'Inter', sans-serif;
+        color: var(--text);
+        background: var(--surface);
+        transition: border-color .2s, box-shadow .2s;
+        outline: none;
+    }
 
-        .btn-create-itinerary {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background-color 0.3s ease;
-        }
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+    }
 
-        .btn-create-itinerary:hover {
-            background-color: #0056b3;
-        }
+    .date-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
 
-        .help-text {
-            font-size: 14px;
-            color: #6c757d;
-            margin-top: 5px;
-        }
+    /* Checkbox grid for cities & interests */
+    .checkbox-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
+    }
 
-        @media (max-width: 600px) {
-            .cities-grid {
-                grid-template-columns: 1fr;
-            }
+    .checkbox-grid label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        font-size: .875rem;
+        font-weight: 500;
+        color: var(--text);
+        transition: all .2s;
+        background: var(--surface);
+    }
 
-            .date-inputs {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="itinerary-creation-container">
-            <h1>Create Your Multi-City Itinerary</h1>
-            
-            <form method="post" action="" class="itinerary-form">
-                {% csrf_token %}
-                
-                <div class="form-group">
-                    <label for="itinerary-name">Itinerary Name</label>
-                    <input type="text" id="itinerary-name" name="name" required placeholder="Enter a name for your itinerary">
-                </div>
-                
-                <div class="form-group">
-                    <label>Select Cities to Visit <span style="color: red;">*</span></label>
-                    <div class="cities-grid">
-                        <div class="city-item">
-                            <input type="checkbox" id="city_mumbai" name="cities" value="mumbai" checked>
-                            <label for="city_mumbai">Mumbai</label>
-                        </div>
-                        <div class="city-item">
-                            <input type="checkbox" id="city_chennai" name="cities" value="chennai" checked>
-                            <label for="city_chennai">Chennai</label>
-                        </div>
-                        <div class="city-item">
-                            <input type="checkbox" id="city_hyderabad" name="cities" value="hyderabad" checked>
-                            <label for="city_hyderabad">Hyderabad</label>
-                        </div>
-                        <div class="city-item">
-                            <input type="checkbox" id="city_gujarat" name="cities" value="gujarat" checked>
-                            <label for="city_gujarat">Gujarat</label>
-                        </div>
-                    </div>
-                    <div class="help-text">
-                        Select the cities you want to visit. We'll help you plan the best route.
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label>Trip Dates <span style="color: red;">*</span></label>
-                    <div class="date-inputs">
-                        <div>
-                            <label for="start_date">Start Date</label>
-                            <input type="date" id="start_date" name="start_date" required>
-                        </div>
-                        <div>
-                            <label for="end_date">End Date</label>
-                            <input type="date" id="end_date" name="end_date" required>
-                        </div>
-                    </div>
-                </div>
+    .checkbox-grid label:hover {
+        border-color: var(--primary-light);
+        background: var(--bg);
+    }
 
-                <div class="form-group">
-                    <label>Transportation Preference</label>
-                    <select name="transportation_type" id="transportation_type" class="form-control">
-                        <option value="mixed">Mixed (Recommended)</option>
-                        <option value="car">Rental Car</option>
-                        <option value="public">Public Transportation</option>
-                        <option value="tour">Guided Tours</option>
-                        <option value="walk">Walking</option>
-                        <option value="bike">Biking</option>
-                    </select>
-                    <div class="help-text">
-                        Choose your preferred way to travel between attractions.
-                    </div>
-                </div>
+    .checkbox-grid input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--primary);
+        flex-shrink: 0;
+    }
 
-                <div class="form-group">
-                    <label>Select Your Interests <span style="color: red;">*</span></label>
-                    <div class="interests-grid">
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="culture" id="interest_culture">
-                            <label for="interest_culture">Culture</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="adventure" id="interest_adventure">
-                            <label for="interest_adventure">Adventure</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="relaxation" id="interest_relaxation">
-                            <label for="interest_relaxation">Relaxation</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="food" id="interest_food">
-                            <label for="interest_food">Food</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="nature" id="interest_nature">
-                            <label for="interest_nature">Nature</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="shopping" id="interest_shopping">
-                            <label for="interest_shopping">Shopping</label>
-                        </div>
-                         <div class="interest-item">
-                            <input type="checkbox" name="interests" value="entertainment" id="interest_entertainment">
-                            <label for="interest_entertainment">Entertainment</label>
-                        </div>
-                    </div>
-                    <div class="help-text">
-                        Select at least one interest. We'll customize your itinerary based on your selections.
-                    </div>
-                </div>
-                
-                <div class="form-group">
-                    <label for="total_budget">Total Budget (Optional)</label>
-                    <input type="number" id="total_budget" name="total_budget" placeholder="Enter your budget amount">
-                    <div class="help-text">
-                        Enter your total trip budget in your local currency
-                    </div>
-                </div>
-                
-                <button type="submit" class="btn-create-itinerary">
-                    Generate My Multi-City Itinerary
-                </button>
-            </form>
+    .checkbox-grid input[type="checkbox"]:checked + span,
+    .checkbox-grid label:has(input:checked) {
+        border-color: var(--primary);
+        background: var(--bg2);
+        color: var(--primary);
+    }
+
+    /* City image cards */
+    .city-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+    }
+
+    .city-select-card {
+        position: relative;
+        border-radius: 14px;
+        overflow: hidden;
+        height: 160px;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all .25s ease;
+        box-shadow: 0 4px 16px rgba(0,0,0,.12);
+    }
+
+    .city-select-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,.2);
+    }
+
+    .city-select-card.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124,58,237,.3), 0 8px 24px rgba(0,0,0,.2);
+    }
+
+    .city-select-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transition: transform .4s ease;
+    }
+
+    .city-select-card:hover img { transform: scale(1.06); }
+
+    .city-select-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(10,5,40,.8) 0%, rgba(10,5,40,.1) 60%, transparent 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 14px 12px;
+    }
+
+    .city-select-name {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #fff;
+        text-shadow: 0 1px 4px rgba(0,0,0,.5);
+    }
+
+    .city-select-state {
+        font-size: .7rem;
+        color: rgba(255,255,255,.75);
+        margin-top: 2px;
+    }
+
+    .city-select-check {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 8px rgba(124,58,237,.5);
+    }
+
+    .city-select-check i { color: #fff; font-size: .75rem; }
+
+    .city-select-card.selected .city-select-check { display: flex; }
+
+    /* Hidden real checkboxes */
+    .cities-field { display: none; }
+
+    /* Interest image cards */
+    .interest-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 4px;
+    }
+
+    .interest-card {
+        position: relative;
+        border-radius: 12px;
+        overflow: hidden;
+        height: 110px;
+        cursor: pointer;
+        border: 3px solid transparent;
+        transition: all .25s ease;
+        box-shadow: 0 3px 12px rgba(0,0,0,.1);
+    }
+
+    .interest-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 20px rgba(0,0,0,.18);
+    }
+
+    .interest-card.selected {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124,58,237,.25), 0 6px 20px rgba(0,0,0,.15);
+    }
+
+    .interest-card-bg {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+
+    .interest-card-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(10,5,40,.75) 0%, rgba(10,5,40,.1) 60%, transparent 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 10px;
+    }
+
+    .interest-card-name {
+        font-size: .78rem;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+        text-shadow: 0 1px 4px rgba(0,0,0,.5);
+        text-transform: capitalize;
+    }
+
+    .interest-card-check {
+        position: absolute;
+        top: 7px;
+        right: 7px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: var(--primary);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 6px rgba(124,58,237,.5);
+    }
+
+    .interest-card-check i { color: #fff; font-size: .65rem; }
+    .interest-card.selected .interest-card-check { display: flex; }
+
+    /* Hide real interest checkboxes */
+    .interests-field { display: none; }
+
+    @media (max-width: 640px) {
+        .city-cards-grid { grid-template-columns: repeat(2, 1fr); }
+        .interest-cards-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .error-text {
+        color: #ef4444;
+        font-size: .8rem;
+        margin-top: 5px;
+    }
+
+    .submit-section {
+        text-align: center;
+        padding-top: 8px;
+    }
+
+    .submit-section .btn {
+        padding: .85rem 2.5rem;
+        font-size: 1rem;
+    }
+
+    .tips-card {
+        background: linear-gradient(135deg, var(--bg2), #e0e7ff);
+        border-radius: var(--radius);
+        padding: 20px 24px;
+        margin-top: 20px;
+        border: 1px solid rgba(124,58,237,.15);
+    }
+
+    .tips-card h4 {
+        font-size: .875rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tips-card ul {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .tips-card li {
+        font-size: .82rem;
+        color: var(--primary-dark);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .tips-card li::before {
+        content: '✦';
+        color: var(--primary);
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    @media (max-width: 640px) {
+        .form-card { padding: 24px 18px; }
+        .date-row { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="create-wrapper">
+    <div class="create-header">
+        <div class="icon-circle">
+            <i class="fas fa-route"></i>
         </div>
+        <h1>Create Your Multi-City Itinerary</h1>
+        <p>Plan your perfect heritage journey across India's most iconic cities</p>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Set min dates to today
-            const today = new Date().toISOString().split('T')[0];
-            const startDateInput = document.getElementById('start_date');
-            const endDateInput = document.getElementById('end_date');
-            
-            startDateInput.min = today;
-            endDateInput.min = today;
-            
-            // Date validation
-            startDateInput.addEventListener('change', validateDates);
-            endDateInput.addEventListener('change', validateDates);
-            
-            function validateDates() {
-                const startDate = new Date(startDateInput.value);
-                const endDate = new Date(endDateInput.value);
-                
-                if (startDate > endDate) {
-                    alert('End date must be after start date');
-                    endDateInput.value = '';
-                }
-            }
-            
-            // Form validation
-            document.querySelector('.itinerary-form').addEventListener('submit', function(event) {
-                const selectedCities = document.querySelectorAll('input[name="cities"]:checked');
-                
-                if (selectedCities.length === 0) {
-                    event.preventDefault();
-                    alert('Please select at least one city for your itinerary');
-                }
-                
-                const selectedInterests = document.querySelectorAll('input[name="interests"]:checked');
-                if (selectedInterests.length === 0) {
-                    event.preventDefault();
-                    alert('Please select at least one interest for your itinerary');
-                }
-            });
+    <div class="form-card">
+        {% if form.non_field_errors %}
+            <div class="alert alert-error" style="margin-bottom:20px;">
+                <i class="fas fa-exclamation-circle"></i>{{ form.non_field_errors }}
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <!-- Trip Name -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-pen"></i>Trip Details</div>
+                <div class="form-group">
+                    <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                    {{ form.name }}
+                    {% if form.name.errors %}<div class="error-text">{{ form.name.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <!-- Cities -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-city"></i>Select Cities</div>
+
+                <!-- Visual city image cards (JS-driven) -->
+                <div class="city-cards-grid" id="cityCardsGrid">
+                    <div class="city-select-card" data-city-name="Mumbai">
+                        <img src="{% static 'img/gateway.jpg' %}" alt="Mumbai">
+                        <div class="city-select-overlay">
+                            <div class="city-select-name">Mumbai</div>
+                            <div class="city-select-state">Maharashtra</div>
+                        </div>
+                        <div class="city-select-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="city-select-card" data-city-name="Chennai">
+                        <img src="{% static 'img/chennai.jpg' %}" alt="Chennai">
+                        <div class="city-select-overlay">
+                            <div class="city-select-name">Chennai</div>
+                            <div class="city-select-state">Tamil Nadu</div>
+                        </div>
+                        <div class="city-select-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="city-select-card" data-city-name="Hyderabad">
+                        <img src="/media/users/images/Charminar.jpg" alt="Hyderabad">
+                        <div class="city-select-overlay">
+                            <div class="city-select-name">Hyderabad</div>
+                            <div class="city-select-state">Telangana</div>
+                        </div>
+                        <div class="city-select-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="city-select-card" data-city-name="Gujarat">
+                        <img src="{% static 'img/White Rann.png' %}" alt="Gujarat">
+                        <div class="city-select-overlay">
+                            <div class="city-select-name">Gujarat</div>
+                            <div class="city-select-state">Western India</div>
+                        </div>
+                        <div class="city-select-check"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+
+                <!-- Hidden real Django checkboxes (submitted with form) -->
+                <div class="cities-field" id="citiesField">{{ form.cities }}</div>
+                {% if form.cities.errors %}<div class="error-text" style="margin-top:8px;">{{ form.cities.errors }}</div>{% endif %}
+            </div>
+
+            <!-- Dates -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-calendar-alt"></i>Travel Dates</div>
+                <div class="date-row">
+                    <div class="form-group">
+                        <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}<div class="error-text">{{ form.start_date.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}<div class="error-text">{{ form.end_date.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transport & Budget -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-car"></i>Transport & Budget</div>
+                <div class="date-row">
+                    <div class="form-group">
+                        <label for="{{ form.transportation_type.id_for_label }}">{{ form.transportation_type.label }}</label>
+                        {{ form.transportation_type }}
+                        {% if form.transportation_type.errors %}<div class="error-text">{{ form.transportation_type.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.total_budget.id_for_label }}">{{ form.total_budget.label }}</label>
+                        {{ form.total_budget }}
+                        {% if form.total_budget.errors %}<div class="error-text">{{ form.total_budget.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interests -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-heart"></i>Interests</div>
+
+                <div class="interest-cards-grid" id="interestCardsGrid">
+                    <div class="interest-card" data-interest="culture">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">🏛️</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Culture</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="adventure">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);">🧗</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Adventure</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="relaxation">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);">🧘</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Relaxation</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="food">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🍛</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Food</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="nature">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);">🌿</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Nature</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="shopping">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);">🛍️</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Shopping</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                    <div class="interest-card" data-interest="entertainment">
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);">🎭</div>
+                        <div class="interest-card-overlay"><div class="interest-card-name">Entertainment</div></div>
+                        <div class="interest-card-check"><i class="fas fa-check"></i></div>
+                    </div>
+                </div>
+
+                <!-- Hidden real Django checkboxes -->
+                <div class="interests-field" id="interestsField">{{ form.interests }}</div>
+                {% if form.interests.errors %}<div class="error-text" style="margin-top:8px;">{{ form.interests.errors }}</div>{% endif %}
+            </div>
+
+            <div class="submit-section">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-magic"></i>Generate Day-wise Plan
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <div class="tips-card">
+        <h4><i class="fas fa-lightbulb"></i>Planning Tips</h4>
+        <ul>
+            <li>Select 2–4 cities for the best experience — more cities means more days needed.</li>
+            <li>Choose interests that match your travel style for a personalised itinerary.</li>
+            <li>Budget is used to suggest appropriate activities and accommodation options.</li>
+            <li>You can book individual attractions directly from your generated itinerary.</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+(function () {
+    // ── Sync city cards with hidden checkboxes ──
+    const cityCards = document.querySelectorAll('.city-select-card');
+    const cityCheckboxes = document.querySelectorAll('#citiesField input[type="checkbox"]');
+
+    const cityCbMap = {};
+    cityCheckboxes.forEach(cb => {
+        const lbl = cb.closest('li') ? cb.closest('li').querySelector('label') : null;
+        if (lbl) cityCbMap[lbl.textContent.trim()] = cb;
+    });
+
+    cityCards.forEach(card => {
+        const cityName = card.dataset.cityName;
+        const cb = cityCbMap[cityName];
+        if (cb && cb.checked) card.classList.add('selected');
+        card.addEventListener('click', () => {
+            card.classList.toggle('selected');
+            if (cb) cb.checked = card.classList.contains('selected');
         });
-    </script>
-</body>
-</html>
+    });
+
+    // ── Sync interest cards with hidden checkboxes ──
+    const interestCards = document.querySelectorAll('.interest-card');
+    const interestCheckboxes = document.querySelectorAll('#interestsField input[type="checkbox"]');
+
+    const interestCbMap = {};
+    interestCheckboxes.forEach(cb => {
+        interestCbMap[cb.value.toLowerCase()] = cb;
+    });
+
+    interestCards.forEach(card => {
+        const interest = card.dataset.interest;
+        const cb = interestCbMap[interest];
+        if (cb && cb.checked) card.classList.add('selected');
+        card.addEventListener('click', () => {
+            card.classList.toggle('selected');
+            if (cb) cb.checked = card.classList.contains('selected');
+        });
+    });
+})();
+</script>
+{% endblock %}

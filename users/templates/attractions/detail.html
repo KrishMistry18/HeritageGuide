@@ -1,0 +1,481 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ attraction.name }} — HeritageGuide{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-hero {
+        position: relative;
+        width: 100%;
+        height: 420px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        margin-top: 24px;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .detail-hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .detail-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(10,5,40,.85) 0%, rgba(10,5,40,.2) 60%, transparent 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        padding: 32px;
+    }
+
+    .detail-hero-overlay h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2.4rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 8px rgba(0,0,0,.4);
+    }
+
+    .detail-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .detail-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255,255,255,.85);
+        font-size: .875rem;
+        font-weight: 500;
+    }
+
+    .detail-meta-item i { color: var(--accent); font-size: .8rem; }
+
+    .detail-body {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+        margin-top: 24px;
+    }
+
+    .detail-main {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .info-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 28px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+    }
+
+    .info-card h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .info-card h2 i { color: var(--primary); font-size: 1rem; }
+
+    .info-card p {
+        color: #374151;
+        line-height: 1.75;
+        font-size: .95rem;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+        margin-top: 4px;
+    }
+
+    .detail-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        border: 1px solid var(--border);
+    }
+
+    .detail-item-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--bg2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .detail-item-icon i { color: var(--primary); font-size: .9rem; }
+
+    .detail-item-label {
+        font-size: .75rem;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: .5px;
+        margin-bottom: 3px;
+    }
+
+    .detail-item-value {
+        font-size: .9rem;
+        font-weight: 600;
+        color: var(--text);
+    }
+
+    .tags-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .tag-chip {
+        padding: 4px 12px;
+        background: var(--bg2);
+        color: var(--primary);
+        border-radius: 50px;
+        font-size: .78rem;
+        font-weight: 600;
+        text-transform: capitalize;
+    }
+
+    /* Sidebar */
+    .detail-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .action-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+    }
+
+    .action-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 16px;
+        color: var(--text);
+    }
+
+    .action-card .btn {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 10px;
+    }
+
+    .rating-display {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 16px;
+        background: var(--bg);
+        border-radius: var(--radius-sm);
+        margin-bottom: 16px;
+    }
+
+    .rating-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .rating-stars { font-size: 1.1rem; }
+
+    .rating-label { font-size: .8rem; color: var(--text-muted); margin-top: 2px; }
+
+    /* Related */
+    .related-section { margin-top: 32px; }
+
+    .related-section h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text);
+    }
+
+    .related-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 16px;
+    }
+
+    .related-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+        transition: transform .25s, box-shadow .25s;
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .related-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .related-card-img {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        background: var(--bg2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .related-card-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .related-card-img-placeholder {
+        width: 100%;
+        height: 150px;
+        background: linear-gradient(135deg, var(--bg2), var(--bg));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .related-card-img-placeholder i {
+        font-size: 2.5rem;
+        color: var(--primary-light);
+        opacity: .5;
+    }
+
+    .related-card-body {
+        padding: 16px;
+    }
+
+    .related-card-body h4 {
+        font-weight: 600;
+        font-size: .95rem;
+        margin-bottom: 6px;
+        color: var(--text);
+    }
+
+    .related-card-body p {
+        font-size: .82rem;
+        color: var(--text-muted);
+        line-height: 1.5;
+        margin-bottom: 10px;
+    }
+
+    .related-card-body .view-link {
+        font-size: .8rem;
+        font-weight: 600;
+        color: var(--primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    @media (max-width: 900px) {
+        .detail-body { grid-template-columns: 1fr; }
+        .detail-hero { height: 280px; }
+        .detail-hero-overlay h1 { font-size: 1.7rem; }
+        .detail-grid { grid-template-columns: 1fr; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Image -->
+<div class="detail-hero">
+    {% if attraction.image %}
+        <img src="{{ attraction.image.url }}" alt="{{ attraction.name }}">
+    {% else %}
+        <img src="{% static 'img/hero.jpg' %}" alt="{{ attraction.name }}" style="filter:brightness(.7);">
+    {% endif %}
+    <div class="detail-hero-overlay">
+        <div class="detail-meta" style="margin-bottom:10px;">
+            <span class="badge badge-accent">{{ attraction.get_type_display }}</span>
+            {% for tag in attraction.get_interest_tags_list %}
+                <span class="badge badge-primary">{{ tag }}</span>
+            {% endfor %}
+        </div>
+        <h1>{{ attraction.name }}</h1>
+        <div class="detail-meta">
+            <span class="detail-meta-item"><i class="fas fa-map-marker-alt"></i>{{ attraction.city.name }}</span>
+            <span class="detail-meta-item"><i class="fas fa-star"></i>{{ attraction.rating }}/5</span>
+            {% if attraction.opening_time %}
+                <span class="detail-meta-item"><i class="fas fa-clock"></i>{{ attraction.opening_time|time:"g:i A" }} – {{ attraction.closing_time|time:"g:i A" }}</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Body -->
+<div class="detail-body">
+    <!-- Main Content -->
+    <div class="detail-main">
+        <!-- About -->
+        <div class="info-card">
+            <h2><i class="fas fa-info-circle"></i>About this Place</h2>
+            <p>{{ attraction.info }}</p>
+            {% if attraction.get_interest_tags_list %}
+                <div class="tags-row" style="margin-top:16px;">
+                    {% for tag in attraction.get_interest_tags_list %}
+                        <span class="tag-chip">{{ tag }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Visit Info -->
+        <div class="info-card">
+            <h2><i class="fas fa-compass"></i>Visit Information</h2>
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-item-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <div>
+                        <div class="detail-item-label">Address</div>
+                        <div class="detail-item-value">{{ attraction.address }}</div>
+                    </div>
+                </div>
+                {% if attraction.opening_time %}
+                <div class="detail-item">
+                    <div class="detail-item-icon"><i class="fas fa-clock"></i></div>
+                    <div>
+                        <div class="detail-item-label">Opening Hours</div>
+                        <div class="detail-item-value">{{ attraction.opening_time|time:"g:i A" }} – {{ attraction.closing_time|time:"g:i A" }}</div>
+                    </div>
+                </div>
+                {% endif %}
+                <div class="detail-item">
+                    <div class="detail-item-icon"><i class="fas fa-hourglass-half"></i></div>
+                    <div>
+                        <div class="detail-item-label">Suggested Duration</div>
+                        <div class="detail-item-value">{{ attraction.duration_minutes }} minutes</div>
+                    </div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-item-icon"><i class="fas fa-tag"></i></div>
+                    <div>
+                        <div class="detail-item-label">Category</div>
+                        <div class="detail-item-value">{{ attraction.get_type_display }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if attraction.reviews %}
+        <div class="info-card">
+            <h2><i class="fas fa-quote-left"></i>Visitor Reviews</h2>
+            <p style="font-style:italic;color:#4b5563;">{{ attraction.reviews }}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="detail-sidebar">
+        <!-- Rating -->
+        <div class="action-card">
+            <h3>Rating & Booking</h3>
+            <div class="rating-display">
+                <div>
+                    <div class="rating-number">{{ attraction.rating }}</div>
+                    <div class="rating-label">out of 5</div>
+                </div>
+                <div>
+                    <div class="rating-stars stars">
+                        {% with rating=attraction.rating|floatformat:"0" %}
+                            {% for i in "12345" %}★{% endfor %}
+                        {% endwith %}
+                    </div>
+                    <div class="rating-label">Visitor Rating</div>
+                </div>
+            </div>
+            <a href="{% url 'book_slot' attraction.id %}" class="btn btn-primary">
+                <i class="fas fa-calendar-check"></i>Book a Slot
+            </a>
+            <a href="{% url 'itinerary_create' %}" class="btn btn-secondary">
+                <i class="fas fa-route"></i>Add to Itinerary
+            </a>
+        </div>
+
+        <!-- Quick Facts -->
+        <div class="action-card">
+            <h3>Quick Facts</h3>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+                    <span style="font-size:.85rem;color:var(--text-muted);">City</span>
+                    <span style="font-size:.9rem;font-weight:600;">{{ attraction.city.name }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+                    <span style="font-size:.85rem;color:var(--text-muted);">Type</span>
+                    <span class="badge badge-primary">{{ attraction.get_type_display }}</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--border);">
+                    <span style="font-size:.85rem;color:var(--text-muted);">Duration</span>
+                    <span style="font-size:.9rem;font-weight:600;">~{{ attraction.duration_minutes }} min</span>
+                </div>
+                {% if attraction.opening_time %}
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-size:.85rem;color:var(--text-muted);">Hours</span>
+                    <span style="font-size:.85rem;font-weight:600;">{{ attraction.opening_time|time:"g A" }}–{{ attraction.closing_time|time:"g A" }}</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Related Attractions -->
+{% if related_attractions %}
+<div class="related-section">
+    <h2>More in {{ attraction.city.name }}</h2>
+    <div class="related-grid">
+        {% for item in related_attractions %}
+        <a href="{% url 'attraction_detail' item.type item.id %}" class="related-card">
+            {% if item.image %}
+                <div class="related-card-img"><img src="{{ item.image.url }}" alt="{{ item.name }}"></div>
+            {% else %}
+                <div class="related-card-img-placeholder">
+                    <i class="fas fa-{% if item.type == 'museum' %}university{% elif item.type == 'monument' %}landmark{% elif item.type == 'event' %}calendar-star{% else %}map-marker-alt{% endif %}"></i>
+                </div>
+            {% endif %}
+            <div class="related-card-body">
+                <h4>{{ item.name }}</h4>
+                <p>{{ item.info|truncatewords:15 }}</p>
+                <span class="view-link"><i class="fas fa-arrow-right"></i>View Details</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

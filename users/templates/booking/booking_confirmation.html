@@ -1,209 +1,274 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block content %}
-<div class="confirmation-container">
-    <div class="confirmation-card">
-        <div class="success-checkmark">
-            <i class="checkmark">✓</i>
-        </div>
-        
-        <h1>Booking Confirmed!</h1>
-        
-        <div class="booking-details">
-            <h2>Booking Details</h2>
-            <div class="detail-row">
-                <span class="label">Attraction:</span>
-                <span class="value">{{ booking.attraction.name }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Date:</span>
-                <span class="value">{{ booking.date|date:"l, F j, Y" }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Time Slot:</span>
-                <span class="value">
-                    {% if booking.time_slot == 'morning' %}
-                        9:00 AM - 12:00 PM
-                    {% elif booking.time_slot == 'afternoon' %}
-                        12:00 PM - 3:00 PM
-                    {% else %}
-                        3:00 PM - 6:00 PM
-                    {% endif %}
-                </span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Number of People:</span>
-                <span class="value">{{ booking.number_of_people }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Booking ID:</span>
-                <span class="value">{{ booking.id }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="label">Status:</span>
-                <span class="value status-{{ booking.status }}">{{ booking.status|title }}</span>
-            </div>
-        </div>
+{% block title %}Booking Confirmed — Historify{% endblock %}
 
-        <div class="important-info">
-            <h3>Important Information</h3>
-            <ul>
-                <li>Please arrive 15 minutes before your time slot</li>
-                <li>Bring a valid ID for verification</li>
-                <li>Keep this booking ID handy: <strong>{{ booking.id }}</strong></li>
-            </ul>
-        </div>
-
-        <div class="action-buttons">
-            <a href="{% url 'info8' %}" class="btn btn-secondary">Back to Attraction</a>
-            <button onclick="window.print()" class="btn btn-primary">Print Booking</button>
-        </div>
-    </div>
-</div>
-
+{% block extra_css %}
 <style>
     @media print {
-        body * {
-            visibility: hidden;
-        }
-        .confirmation-card, .confirmation-card * {
-            visibility: visible;
-        }
-        .confirmation-card {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            padding: 20px;
-        }
-        .action-buttons {
-            display: none;
-        }
+        .nav-wrapper, .site-footer, .action-buttons { display: none !important; }
+        .confirmation-card { box-shadow: none !important; }
     }
 
-    .confirmation-container {
-        max-width: 800px;
+    .confirmation-wrapper {
+        max-width: 680px;
         margin: 40px auto;
-        padding: 20px;
     }
 
-    .confirmation-card {
-        background: white;
-        padding: 40px;
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    /* Success animation */
+    .success-header {
         text-align: center;
+        padding: 40px 20px 32px;
     }
 
-    .success-checkmark {
-        width: 80px;
-        height: 80px;
-        margin: 0 auto 20px;
-        background-color: #47d764;
+    .success-circle {
+        width: 88px;
+        height: 88px;
         border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #059669);
         display: flex;
         align-items: center;
         justify-content: center;
+        margin: 0 auto 20px;
+        box-shadow: 0 8px 32px rgba(16,185,129,.35);
+        animation: popIn .4s cubic-bezier(.175,.885,.32,1.275) both;
     }
 
-    .checkmark {
-        color: white;
-        font-size: 40px;
+    @keyframes popIn {
+        from { transform: scale(0); opacity: 0; }
+        to   { transform: scale(1); opacity: 1; }
     }
 
-    h1 {
-        color: #333;
-        margin-bottom: 30px;
+    .success-circle i { font-size: 2.2rem; color: #fff; }
+
+    .success-header h1 {
+        font-family: 'Playfair Display', serif;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 8px;
     }
 
-    .booking-details {
-        text-align: left;
-        margin: 30px 0;
-        padding: 20px;
-        background: #f8f9fa;
-        border-radius: 10px;
+    .success-header p {
+        color: var(--text-muted);
+        font-size: .95rem;
     }
 
-    .booking-details h2 {
-        color: #444;
+    /* Confirmation card */
+    .confirmation-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(124,58,237,.1);
         margin-bottom: 20px;
-        text-align: center;
+    }
+
+    .confirmation-card-header {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        padding: 20px 28px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .confirmation-card-header h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    .booking-id-badge {
+        background: rgba(255,255,255,.15);
+        color: #fff;
+        padding: 5px 14px;
+        border-radius: 50px;
+        font-size: .78rem;
+        font-weight: 700;
+        letter-spacing: .5px;
+    }
+
+    .confirmation-card-body {
+        padding: 28px;
     }
 
     .detail-row {
         display: flex;
         justify-content: space-between;
-        margin-bottom: 15px;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
+        align-items: center;
+        padding: 13px 0;
+        border-bottom: 1px solid var(--border);
     }
 
-    .label {
-        font-weight: bold;
-        color: #666;
+    .detail-row:last-child { border-bottom: none; }
+
+    .detail-row .label {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: .875rem;
+        color: var(--text-muted);
+        font-weight: 500;
     }
 
-    .value {
-        color: #333;
+    .detail-row .label i {
+        width: 18px;
+        color: var(--primary);
+        font-size: .8rem;
+    }
+
+    .detail-row .value {
+        font-size: .9rem;
+        font-weight: 700;
+        color: var(--text);
+        text-align: right;
     }
 
     .status-confirmed {
-        color: #28a745;
-        font-weight: bold;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        background: #d1fae5;
+        color: #065f46;
+        border-radius: 50px;
+        font-size: .8rem;
+        font-weight: 700;
     }
 
-    .important-info {
-        margin: 30px 0;
-        padding: 20px;
-        background: #fff3cd;
-        border-radius: 10px;
-        text-align: left;
+    /* Important info */
+    .important-card {
+        background: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: var(--radius);
+        padding: 22px 28px;
+        margin-bottom: 20px;
     }
 
-    .important-info h3 {
-        color: #856404;
-        margin-bottom: 15px;
-    }
-
-    .important-info ul {
-        list-style-type: none;
-        padding: 0;
-    }
-
-    .important-info li {
-        margin-bottom: 10px;
-        color: #856404;
-    }
-
-    .action-buttons {
-        margin-top: 30px;
+    .important-card h3 {
+        font-size: .875rem;
+        font-weight: 700;
+        color: #92400e;
+        margin-bottom: 14px;
         display: flex;
-        gap: 20px;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .important-list {
+        list-style: none;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .important-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        font-size: .85rem;
+        color: #78350f;
+        line-height: 1.5;
+    }
+
+    .important-list li i {
+        color: #d97706;
+        margin-top: 2px;
+        flex-shrink: 0;
+        font-size: .8rem;
+    }
+
+    /* Actions */
+    .action-buttons {
+        display: flex;
+        gap: 12px;
         justify-content: center;
-    }
-
-    .btn {
-        padding: 12px 24px;
-        border-radius: 5px;
-        text-decoration: none;
-        font-weight: bold;
-        transition: background-color 0.3s;
-        border: none;
-        cursor: pointer;
-    }
-
-    .btn-primary {
-        background-color: #007bff;
-        color: white;
-    }
-
-    .btn-secondary {
-        background-color: #6c757d;
-        color: white;
-    }
-
-    .btn:hover {
-        opacity: 0.9;
+        flex-wrap: wrap;
     }
 </style>
-{% endblock %} 
+{% endblock %}
+
+{% block content %}
+<div class="confirmation-wrapper">
+    <!-- Success Header -->
+    <div class="success-header">
+        <div class="success-circle">
+            <i class="fas fa-check"></i>
+        </div>
+        <h1>Booking Confirmed!</h1>
+        <p>Your visit to <strong>{{ booking.attraction.name }}</strong> has been successfully booked.</p>
+    </div>
+
+    <!-- Booking Details -->
+    <div class="confirmation-card">
+        <div class="confirmation-card-header">
+            <h2>Booking Details</h2>
+            <span class="booking-id-badge">#{{ booking.id }}</span>
+        </div>
+        <div class="confirmation-card-body">
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-landmark"></i>Attraction</span>
+                <span class="value">{{ booking.attraction.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-map-marker-alt"></i>Location</span>
+                <span class="value">{{ booking.attraction.city.name }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-calendar-alt"></i>Date</span>
+                <span class="value">{{ booking.date|date:"l, F j, Y" }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-clock"></i>Time Slot</span>
+                <span class="value">
+                    {% if booking.time_slot == 'morning' %}🌅 9:00 AM – 12:00 PM
+                    {% elif booking.time_slot == 'afternoon' %}☀️ 12:00 PM – 3:00 PM
+                    {% else %}🌆 3:00 PM – 6:00 PM{% endif %}
+                </span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-users"></i>Number of People</span>
+                <span class="value">{{ booking.number_of_people }} person{{ booking.number_of_people|pluralize }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-hashtag"></i>Booking ID</span>
+                <span class="value" style="font-family:monospace;font-size:.95rem;">#{{ booking.id }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="label"><i class="fas fa-check-circle"></i>Status</span>
+                <span class="value">
+                    <span class="status-confirmed">
+                        <i class="fas fa-check-circle"></i>{{ booking.status|title }}
+                    </span>
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Important Info -->
+    <div class="important-card">
+        <h3><i class="fas fa-exclamation-triangle"></i>Important Information</h3>
+        <ul class="important-list">
+            <li><i class="fas fa-clock"></i>Please arrive at least 15 minutes before your time slot begins.</li>
+            <li><i class="fas fa-id-card"></i>Carry a valid government-issued photo ID for verification.</li>
+            <li><i class="fas fa-hashtag"></i>Keep your Booking ID <strong>#{{ booking.id }}</strong> handy at the entrance.</li>
+            <li><i class="fas fa-ban"></i>Cancellations must be made at least 24 hours in advance.</li>
+        </ul>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-buttons">
+        <a href="{% url 'attraction_detail' booking.attraction.type booking.attraction.id %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i>Back to Attraction
+        </a>
+        <a href="{% url 'itinerary_create' %}" class="btn btn-secondary">
+            <i class="fas fa-route"></i>Plan More
+        </a>
+        <button onclick="window.print()" class="btn btn-primary">
+            <i class="fas fa-print"></i>Print Confirmation
+        </button>
+    </div>
+</div>
+{% endblock %}

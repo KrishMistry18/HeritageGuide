@@ -149,6 +149,7 @@ class Itinerary(models.Model):
 
 class ItineraryDay(models.Model):
     itinerary = models.ForeignKey(Itinerary, on_delete=models.CASCADE, related_name='days')
+    city = models.ForeignKey(City, on_delete=models.CASCADE, related_name="itinerary_days", null=True, blank=True)
     date = models.DateField()
     notes = models.TextField(blank=True)
     

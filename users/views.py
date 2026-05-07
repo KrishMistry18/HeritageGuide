@@ -5,7 +5,10 @@ from django.contrib.auth import logout, login, authenticate
 from django.views.generic import FormView, ListView, DetailView
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
-from .forms import ItineraryForm, SlotBookingForm, BookingForm, SignUpForm
+from django.db import transaction
+from django.db.models import Sum
+from django.db.models import Q
+from .forms import ItineraryForm, SlotBookingForm, BookingForm, SignUpForm, ProfileUpdateForm
 from .models import City, Attraction, Itinerary, ItineraryDay, ItineraryActivity, SlotBooking, AttractionType, Booking, Profile
 import random
 import datetime
@@ -21,6 +24,7 @@ from .models import ChatMessage
 import logging
 from anthropic import Anthropic
 import traceback
+from .supabase_client import get_supabase_anon_client
 
 
 logger = logging.getLogger(__name__)
@@ -120,34 +124,34 @@ class ItineraryCreateView(LoginRequiredMixin, FormView):
         return context
 
     def get_attractions_by_interest(self, city, interests):
-        """Get attractions in a city filtered by user interests"""
-        attractions = []
+        """Get city attractions using robust interest keyword matching."""
+        interest_map = {
+            "culture": ["culture", "history", "heritage", "art", "architecture"],
+            "adventure": ["adventure", "trek", "hike", "outdoor"],
+            "relaxation": ["relaxation", "wellness", "spa", "calm"],
+            "food": ["food", "cuisine", "restaurant", "street food"],
+            "nature": ["nature", "park", "wildlife", "garden", "beach"],
+            "shopping": ["shopping", "market", "mall", "bazaar"],
+            "entertainment": ["entertainment", "show", "event", "music", "nightlife"],
+        }
+        query = Q()
         for interest in interests:
-            # Filter attractions with matching interest tags
-            matching_attractions = Attraction.objects.filter(
-                city=city, 
-                interest_tags__icontains=interest
-            ).order_by('-rating')[:5]  # Get top 5 rated attractions per interest
-            attractions.extend(list(matching_attractions))
-        
-        # Remove duplicates while preserving order
-        unique_attractions = []
-        seen = set()
-        for attraction in attractions:
-            if attraction.id not in seen:
-                unique_attractions.append(attraction)
-                seen.add(attraction.id)
-        
-        return unique_attractions
+            for keyword in interest_map.get(interest, [interest]):
+                query |= Q(interest_tags__icontains=keyword) | Q(type__icontains=keyword)
+
+        matched = Attraction.objects.filter(city=city).filter(query).order_by("-rating")
+        if not matched.exists():
+            matched = Attraction.objects.filter(city=city).order_by("-rating")
+        return list(matched)
 
     def form_valid(self, form):
         try:
-            # Create cities list from selected city values
-            selected_city_names = form.cleaned_data['cities']
-            cities = []
-            for city_name in selected_city_names:
-                city, created = City.objects.get_or_create(name=city_name.title())
-                cities.append(city)
+            selected_city_ids = [int(city_id) for city_id in form.cleaned_data["cities"]]
+            city_map = {city.id: city for city in City.objects.filter(id__in=selected_city_ids)}
+            cities = [city_map[city_id] for city_id in selected_city_ids if city_id in city_map]
+            if not cities:
+                messages.error(self.request, "No valid cities selected.")
+                return self.form_invalid(form)
             
             # Create the itinerary
             itinerary = Itinerary.objects.create(
@@ -160,9 +164,7 @@ class ItineraryCreateView(LoginRequiredMixin, FormView):
                 interests=','.join(form.cleaned_data['interests'])
             )
             
-            # Add selected cities to the itinerary
-            for city in cities:
-                itinerary.cities.add(city)
+            itinerary.cities.set(cities)
             
             # Calculate number of days for the trip
             total_days = (form.cleaned_data['end_date'] - form.cleaned_data['start_date']).days + 1
@@ -173,42 +175,37 @@ class ItineraryCreateView(LoginRequiredMixin, FormView):
             
             current_date = form.cleaned_data['start_date']
             for i, city in enumerate(cities):
-                # Allocate days for this city
                 city_days = days_per_city + (1 if i < remaining_days else 0)
-                
-                # Get all attractions for this city
-                all_city_attractions = []
-                for interest in form.cleaned_data['interests']:
-                    matching_attractions = Attraction.objects.filter(
-                        city=city,
-                        interest_tags__icontains=interest
-                    ).order_by('-rating')
-                    all_city_attractions.extend(list(matching_attractions))
-                
-                # Remove duplicates by name (not just ID) while preserving order
-                unique_attractions = []
-                seen_names = set()
-                for attraction in all_city_attractions:
-                    if attraction.name.lower() not in seen_names:
-                        unique_attractions.append(attraction)
-                        seen_names.add(attraction.name.lower())
-                
-                # Create days for this city
+                all_city_attractions = self.get_attractions_by_interest(city, form.cleaned_data["interests"])
+                used_attraction_ids = set()
+
                 for day_idx in range(city_days):
                     itinerary_day = ItineraryDay.objects.create(
                         itinerary=itinerary,
+                        city=city,
                         date=current_date,
-                        notes=f"Exploring {city.name}'s highlights and experiencing local culture"
+                        notes=f"Explore cultural highlights and local experiences in {city.name}."
                     )
-                    attractions_per_day = min(4, max(3, len(unique_attractions) // city_days))
-                    total_needed = attractions_per_day
-                    day_attractions = []
-                    start_idx = (day_idx * attractions_per_day) % len(unique_attractions) if unique_attractions else 0
-                    for j in range(total_needed):
-                        if unique_attractions:
-                            idx = (start_idx + j) % len(unique_attractions)
-                            day_attractions.append(unique_attractions[idx])
+                    fresh_attractions = [a for a in all_city_attractions if a.id not in used_attraction_ids]
+                    day_attractions = fresh_attractions[:3]
+                    if len(day_attractions) < 3:
+                        fallback = [a for a in all_city_attractions if a.id not in {d.id for d in day_attractions}]
+                        day_attractions.extend(fallback[: 3 - len(day_attractions)])
+
+                    if not day_attractions:
+                        ItineraryActivity.objects.create(
+                            day=itinerary_day,
+                            custom_activity=f"Self-guided cultural walk in {city.name}",
+                            start_time=datetime.time(10, 0),
+                            end_time=datetime.time(12, 0),
+                            notes="Explore local neighborhoods, cafes, and heritage streets.",
+                            order=0,
+                        )
+                        current_date += datetime.timedelta(days=1)
+                        continue
+
                     for idx, attraction in enumerate(day_attractions):
+                        used_attraction_ids.add(attraction.id)
                         start_hour = 9 + (idx * 3)
                         if start_hour > 17:
                             continue
@@ -369,24 +366,92 @@ def home(request):
 #     return render(request, "itinerary/itinerary_detail.html", context)
 
 
+def _unique_username_from_email(email: str) -> str:
+    base = (email.split("@")[0] or "traveler").replace(" ", "").lower()
+    candidate = base
+    suffix = 1
+    while User.objects.filter(username=candidate).exists():
+        candidate = f"{base}{suffix}"
+        suffix += 1
+    return candidate
+
+
+def _supabase_signup(email: str, password: str):
+    client = get_supabase_anon_client()
+    if not client:
+        return None, "Supabase is not configured. Contact admin."
+    try:
+        response = client.auth.sign_up(
+            {
+                "email": email,
+                "password": password,
+            }
+        )
+        return response, None
+    except Exception as exc:
+        return None, str(exc)
+
+
+def _supabase_signin(email: str, password: str):
+    client = get_supabase_anon_client()
+    if not client:
+        return None, "Supabase is not configured. Contact admin."
+    try:
+        response = client.auth.sign_in_with_password(
+            {
+                "email": email,
+                "password": password,
+            }
+        )
+        return response, None
+    except Exception as exc:
+        return None, str(exc)
+
+
 def loginUser(request):
-        if request.method == "POST":
-             loginusername = request.POST.get('loginusername', '').strip()
-             loginpassword = request.POST.get('loginpassword', '').strip()
+    if request.method == "POST":
+        loginusername = request.POST.get("loginusername", "").strip()
+        loginpassword = request.POST.get("loginpassword", "").strip()
+        if not loginusername or not loginpassword:
+            messages.error(request, "Please enter both username/email and password.")
+            return redirect("login")
 
-             print(f"Received Username: {loginusername}, Password: {loginpassword}")  # Debugging
+        user = authenticate(request, username=loginusername, password=loginpassword)
+        if user is None and "@" in loginusername:
+            linked_user = User.objects.filter(email__iexact=loginusername).first()
+            if linked_user:
+                user = authenticate(request, username=linked_user.username, password=loginpassword)
 
-             user = authenticate(request, username=loginusername, password=loginpassword)
+        if user is not None:
+            login(request, user)
+            messages.success(request, "Login successful!")
+            return redirect("home")
 
-             if user is not None:
-                  login(request, user)
-                  messages.success(request, "Login successful!")
-                  return redirect('home')  # Redirect to home page
-                
-             else:
-                 messages.error(request, "Invalid username or password.")
-                 return redirect('login')
-        return render(request,'login2.html')
+        # If local auth fails, try Supabase and sync local account.
+        if "@" in loginusername:
+            supa_session, supa_error = _supabase_signin(loginusername, loginpassword)
+            if supa_session and getattr(supa_session, "user", None):
+                local_user = User.objects.filter(email__iexact=loginusername).first()
+                if not local_user:
+                    local_user = User.objects.create_user(
+                        username=_unique_username_from_email(loginusername),
+                        email=loginusername.lower(),
+                        password=loginpassword,
+                    )
+                    Profile.objects.get_or_create(user=local_user)
+                else:
+                    local_user.set_password(loginpassword)
+                    local_user.save(update_fields=["password"])
+                login(request, local_user)
+                messages.success(request, "Login successful!")
+                return redirect("home")
+            if supa_error:
+                logger.error("Supabase signin failed: %s", supa_error)
+
+        messages.error(request, "Invalid username/email or password.")
+        return redirect("login")
+    google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
+    return render(request, "login2.html", {"google_configured": google_configured})
 def search(request):
     return render(request,'search.html')
 
@@ -396,25 +461,38 @@ def signup(request):
         form = SignUpForm(request.POST)
         if form.is_valid():
             try:
-                user = form.save()
-                messages.success(request, 'Account created successfully! Please log in.')
-                return redirect('login')
+                with transaction.atomic():
+                    user = form.save()
+                    supa_response, supa_error = _supabase_signup(
+                        user.email,
+                        form.cleaned_data["password1"],
+                    )
+                    if supa_error:
+                        logger.error("Supabase signup failed for %s: %s", user.email, supa_error)
+                        # Don't show Supabase errors to users — account still works locally
+                    else:
+                        pass  # Supabase sync succeeded
+                    messages.success(request, "Account created successfully. Please log in.")
+                return redirect("login")
             except Exception as e:
                 messages.error(request, f'An error occurred during signup: {str(e)}')
-                return render(request, 'signup3.html', {'form': form})
+                google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
+                return render(request, 'signup3.html', {'form': form, 'google_configured': google_configured})
         else:
             for field, errors in form.errors.items():
                 for error in errors:
                     messages.error(request, f'{field}: {error}')
     else:
         form = SignUpForm()
-    
-    return render(request, 'signup3.html', {'form': form})
+    google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
+    return render(request, 'signup3.html', {'form': form, 'google_configured': google_configured})
 
 def logoutUser(request):
-    logout(request)
-    messages.success(request,"You logged out successfully")
-    return redirect('home')
+    if request.method == "POST":
+        logout(request)
+        messages.success(request, "You logged out successfully")
+        return redirect("home")
+    return redirect("account")
 
 from django.shortcuts import render
 
@@ -426,15 +504,14 @@ def info(request):
 
 @login_required
 def account_view(request):
-    # Get the user's profile data
-    try:
-        profile = Profile.objects.get(user=request.user)
-    except Profile.DoesNotExist:
-        profile = None
-    
+    profile, _ = Profile.objects.get_or_create(user=request.user)
+    form = ProfileUpdateForm(instance=profile, user=request.user)
     context = {
         'user': request.user,
-        'profile': profile
+        'profile': profile,
+        'profile_form': form,
+        'recent_bookings': Booking.objects.filter(user=request.user).select_related("attraction")[:5],
+        'recent_itineraries': Itinerary.objects.filter(user=request.user).order_by("-created_at")[:5],
     }
     return render(request, 'account.html', context)
 
@@ -469,14 +546,7 @@ def itinerary_detail(request, itinerary_id):
     # Group days by city for better organization
     days_by_city = defaultdict(list)
     for day in days:
-        # Try to determine which city this day belongs to
-        day_activities = day.activities.all()
-        
-        if day_activities.exists() and day_activities.first().attraction:
-            city = day_activities.first().attraction.city
-        else:
-            # If no attraction or custom activity, use the first city
-            city = itinerary.cities.first()
+        city = day.city or itinerary.cities.first()
         
         days_by_city[city].append(day)
     
@@ -535,69 +605,46 @@ def search_suggestions(request):
 def attraction_detail(request, type, id):
     try:
         attraction = Attraction.objects.get(id=id, type=type)
-        # Get the corresponding template based on the attraction type
-        template_name = f'newinfo/info{id}.html'
-        return render(request, template_name, {'attraction': attraction})
+        related_attractions = Attraction.objects.filter(city=attraction.city).exclude(id=attraction.id)[:4]
+        return render(
+            request,
+            "attractions/detail.html",
+            {
+                "attraction": attraction,
+                "related_attractions": related_attractions,
+            },
+        )
     except Attraction.DoesNotExist:
         messages.error(request, "Attraction not found.")
         return redirect('home')
 
 def all_names(request):
-    """API endpoint that returns all names from all models (for smaller datasets)"""
-    # Get all names from each model
-    museums = Museum.objects.all().values('id', 'name')
-    monuments = Monuments.objects.all().values('id', 'name')
-    events = Events.objects.all().values('id', 'name')
-    
-    # Format the results
-    all_items = []
-    
-    for museum in museums:
-        all_items.append({
-            'id': museum['id'],
-            'name': museum['name'],
-            'type': 'museum'
-        })
-    
-    for monument in monuments:
-        all_items.append({
-            'id': monument['id'],
-            'name': monument['name'],
-            'type': 'monument'
-        })
-    
-    for event in events:
-        all_items.append({
-            'id': event['id'],
-            'name': event['name'],
-            'type': 'event'
-        })
-    
-    # Sort alphabetically
-    all_items.sort(key=lambda x: x['name'])
-    
+    """API endpoint that returns all attraction names."""
+    all_items = list(
+        Attraction.objects.values("id", "name", "type").order_by("name")
+    )
     return JsonResponse(all_items, safe=False)
 
 def info1(request):
-    return render(request, "newinfo/info1.html")
+    return redirect("home")
 
 def info2(request):
-    return render(request, "newinfo/info2.html")
+    return redirect("home")
 
 def info3(request):
-    return render(request, "newinfo/info3.html")
+    return redirect("home")
 
 def info4(request):
-    return render(request, "newinfo/info4.html")
+    return redirect("home")
 
 def info5(request):
-    return render(request, "newinfo/info5.html")
+    return redirect("home")
 
 def info6(request):
-    return render(request, "newinfo/info6.html")
+    return redirect("home")
 
 def info7(request):
-    return render(request, "newinfo/info7.html")
+    return redirect("home")
 
 def info8(request):
     # Get the Mumbai city object
@@ -620,34 +667,31 @@ def info8(request):
         }
     )
     
-    context = {
-        'attraction': attraction
-    }
-    return render(request, "newinfo/info8.html", context)
+    return redirect("attraction_detail", type=attraction.type, id=attraction.id)
 
 def info9(request):
-    return render(request, "newinfo/info9.html")
+    return redirect("home")
 
 def info10(request):
-    return render(request, "newinfo/info10.html")
+    return redirect("home")
 
 def info11(request):
-    return render(request, "newinfo/info11.html")
+    return redirect("home")
 
 def info12(request):
-    return render(request, "newinfo/info12.html")
+    return redirect("home")
 
 def info13(request):
-    return render(request, "newinfo/info13.html")
+    return redirect("home")
 
 # def info14(request):
 #     return render(request, "newinfo/info14.html")
 
 def info15(request):
-    return render(request, "newinfo/info15.html")
+    return redirect("home")
 
 def info16(request):
-    return render(request, "newinfo/info16.html")
+    return redirect("home")
 
 # In your views.py
 from django.http import FileResponse, HttpResponseNotFound
@@ -677,54 +721,67 @@ def book_slot(request, attraction_id):
         messages.error(request, "Sorry, this attraction is not available for booking.")
         return redirect('home')
     
-    if request.method == 'POST':
+    selected_date = request.GET.get("date")
+    if request.method == "POST":
         form = BookingForm(request.POST)
         if form.is_valid():
             date = form.cleaned_data['date']
             time_slot = form.cleaned_data['time_slot']
             number_of_people = form.cleaned_data['number_of_people']
-            
-            # Check slot availability
-            availability = Booking.get_slot_availability(attraction, date, time_slot)
-            if number_of_people > availability['available']:
-                messages.error(request, f"Sorry, only {availability['available']} slots available for this time slot.")
-                return render(request, 'booking/book_slot.html', {
-                    'form': form,
-                    'attraction': attraction,
-                    'availability': availability
-                })
-            
             try:
-                # Create the booking
-                booking = form.save(commit=False)
-                booking.user = request.user
-                booking.attraction = attraction
-                booking.status = 'confirmed'
-                booking.save()
-                
-                # Get updated availability for the selected date and time slot
+                with transaction.atomic():
+                    current_booked = (
+                        Booking.objects.select_for_update()
+                        .filter(
+                            attraction=attraction,
+                            date=date,
+                            time_slot=time_slot,
+                            status="confirmed",
+                        )
+                        .aggregate(total=Sum("number_of_people"))["total"]
+                        or 0
+                    )
+                    remaining = max(0, 50 - current_booked)
+                    if number_of_people > remaining:
+                        messages.error(
+                            request,
+                            f"Sorry, only {remaining} slots are available for the selected time slot.",
+                        )
+                        return redirect(f"{request.path}?date={date}")
+
+                    booking = form.save(commit=False)
+                    booking.user = request.user
+                    booking.attraction = attraction
+                    booking.status = "confirmed"
+                    booking.save()
+
                 updated_availability = Booking.get_slot_availability(attraction, date, time_slot)
-                
-                messages.success(request, f'Your booking has been confirmed! {number_of_people} slots booked. {updated_availability["available"]} slots remaining.')
-                return redirect('booking_confirmation', booking_id=booking.id)
+                messages.success(
+                    request,
+                    f"Your booking is confirmed. {updated_availability['available']} slots remain in this time slot.",
+                )
+                return redirect("booking_confirmation", booking_id=booking.id)
                 
             except Exception as e:
                 messages.error(request, f"An error occurred while creating your booking: {str(e)}")
                 return redirect('book_slot', attraction_id=attraction_id)
     else:
         form = BookingForm()
-        # Get availability for each time slot for the current date
-        selected_date = request.GET.get('date', timezone.now().date())
-        availabilities = {
-            'morning': Booking.get_slot_availability(attraction, selected_date, 'morning'),
-            'afternoon': Booking.get_slot_availability(attraction, selected_date, 'afternoon'),
-            'evening': Booking.get_slot_availability(attraction, selected_date, 'evening')
-        }
+        selected_date = request.GET.get("date")
+
+    if not selected_date:
+        selected_date = timezone.now().date()
+    availabilities = {
+        "morning": Booking.get_slot_availability(attraction, selected_date, "morning"),
+        "afternoon": Booking.get_slot_availability(attraction, selected_date, "afternoon"),
+        "evening": Booking.get_slot_availability(attraction, selected_date, "evening"),
+    }
     
     return render(request, 'booking/book_slot.html', {
         'form': form,
         'attraction': attraction,
-        'availabilities': availabilities
+        'availabilities': availabilities,
+        "selected_date": selected_date,
     })
 
 @login_required
@@ -746,16 +803,37 @@ def booking_confirmation(request, booking_id):
         return redirect('home')
 
 def monuments_view(request):
-    monuments = Monuments.objects.all()
-    return render(request, 'monument.html', {'monuments': monuments})
+    city_name = request.GET.get('city', '').strip()
+    attractions = Attraction.objects.filter(type=AttractionType.MONUMENT).select_related("city")
+    if city_name:
+        attractions = attractions.filter(city__name__iexact=city_name)
+    cities = City.objects.all()
+    return render(request, "attractions/list.html", {
+        "attractions": attractions, "title": "Monuments",
+        "cities": cities, "active_city": city_name,
+    })
 
 def museums_view(request):
-    museums = Museum.objects.all()
-    return render(request, 'museums.html', {'museums': museums})
+    city_name = request.GET.get('city', '').strip()
+    attractions = Attraction.objects.filter(type=AttractionType.MUSEUM).select_related("city")
+    if city_name:
+        attractions = attractions.filter(city__name__iexact=city_name)
+    cities = City.objects.all()
+    return render(request, "attractions/list.html", {
+        "attractions": attractions, "title": "Museums",
+        "cities": cities, "active_city": city_name,
+    })
 
 def events_view(request):
-    events = Events.objects.all()
-    return render(request, 'events.html', {'events': events})
+    city_name = request.GET.get('city', '').strip()
+    attractions = Attraction.objects.filter(type=AttractionType.EVENT).select_related("city")
+    if city_name:
+        attractions = attractions.filter(city__name__iexact=city_name)
+    cities = City.objects.all()
+    return render(request, "attractions/list.html", {
+        "attractions": attractions, "title": "Events",
+        "cities": cities, "active_city": city_name,
+    })
 
 @login_required
 def products_view(request):
@@ -789,18 +867,15 @@ def book_slot_view(request, attraction_id):
 @login_required
 def update_profile(request):
     if request.method == 'POST':
-        try:
-            profile = Profile.objects.get(user=request.user)
-        except Profile.DoesNotExist:
-            profile = Profile(user=request.user)
-        
-        profile.phone_number = request.POST.get('phone_number')
-        birth_date = request.POST.get('birth_date')
-        if birth_date:
-            profile.birth_date = birth_date
-        
-        profile.save()
-        messages.success(request, 'Profile updated successfully!')
-        return redirect('account')
+        profile, _ = Profile.objects.get_or_create(user=request.user)
+        form = ProfileUpdateForm(request.POST, instance=profile, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Profile updated successfully!")
+        else:
+            for errors in form.errors.values():
+                for error in errors:
+                    messages.error(request, error)
+        return redirect("account")
     
     return redirect('account')

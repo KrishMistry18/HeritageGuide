@@ -1,30 +1,46 @@
-# Python
+# ── Python ───────────────────────────────────────────────────
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 .Python
 *.egg-info/
+*.egg
+dist/
+build/
+.eggs/
 
-# Environments
+# ── Environments ─────────────────────────────────────────────
 .env
+.env.*
+!.env.example
 .venv/
 venv/
 env/
+ENV/
 
-# Django
+# ── Django ───────────────────────────────────────────────────
 db.sqlite3
-debug.log
+*.log
 staticfiles/
+local_settings.py
 
-# Local uploads (keep out of repo)
+# ── Media uploads (keep out of repo — use cloud storage) ─────
 media/
 
-# OS
+# ── OS ───────────────────────────────────────────────────────
 .DS_Store
+.DS_Store?
+._*
 Thumbs.db
+ehthumbs.db
 
-# IDE
+# ── IDE ──────────────────────────────────────────────────────
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
+# ── Vercel ───────────────────────────────────────────────────
+.vercel/

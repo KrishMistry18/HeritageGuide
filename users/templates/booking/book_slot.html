@@ -1,239 +1,518 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Book Your Visit{% endblock %}
+{% block title %}Book a Slot — {{ attraction.name }}{% endblock %}
 
-{% block content %}
-<div class="booking-container">
-    <h1>Book Your Visit</h1>
-    
-    <div class="booking-info">
-        <h2>Booking Information</h2>
-        <p>Opening Hours: {{ attraction.opening_time|time:"g:i A" }} - {{ attraction.closing_time|time:"g:i A" }}</p>
-        <p>Duration: {{ attraction.duration_minutes }} minutes</p>
-        
-        <div class="availability-info">
-            <h3>Today's Availability:</h3>
-            <div class="time-slots">
-                <div class="slot-card {% if availabilities.morning.available == 0 %}fully-booked{% endif %}">
-                    <h4>Morning</h4>
-                    <p>9:00 AM - 12:00 PM</p>
-                    <div class="slot-stats">
-                        <span>Available: {{ availabilities.morning.available }}</span>
-                        <span>Booked: {{ availabilities.morning.booked }}</span>
-                        <span>Total Capacity: {{ availabilities.morning.total_capacity }}</span>
-                    </div>
-                </div>
-                
-                <div class="slot-card {% if availabilities.afternoon.available == 0 %}fully-booked{% endif %}">
-                    <h4>Afternoon</h4>
-                    <p>12:00 PM - 3:00 PM</p>
-                    <div class="slot-stats">
-                        <span>Available: {{ availabilities.afternoon.available }}</span>
-                        <span>Booked: {{ availabilities.afternoon.booked }}</span>
-                        <span>Total Capacity: {{ availabilities.afternoon.total_capacity }}</span>
-                    </div>
-                </div>
-                
-                <div class="slot-card {% if availabilities.evening.available == 0 %}fully-booked{% endif %}">
-                    <h4>Evening</h4>
-                    <p>3:00 PM - 6:00 PM</p>
-                    <div class="slot-stats">
-                        <span>Available: {{ availabilities.evening.available }}</span>
-                        <span>Booked: {{ availabilities.evening.booked }}</span>
-                        <span>Total Capacity: {{ availabilities.evening.total_capacity }}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-            {{ message }}
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-
-    <form method="post" class="booking-form">
-        {% csrf_token %}
-        
-        <div class="form-group">
-            <label for="{{ form.date.id_for_label }}">Select Date:</label>
-            {{ form.date }}
-            {% if form.date.errors %}
-            <div class="error-message">{{ form.date.errors }}</div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.time_slot.id_for_label }}">Select Time Slot:</label>
-            {{ form.time_slot }}
-            {% if form.time_slot.errors %}
-            <div class="error-message">{{ form.time_slot.errors }}</div>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.number_of_people.id_for_label }}">Number of People:</label>
-            {{ form.number_of_people }}
-            {% if form.number_of_people.errors %}
-            <div class="error-message">{{ form.number_of_people.errors }}</div>
-            {% endif %}
-        </div>
-
-        <button type="submit" class="submit-btn">Confirm Booking</button>
-    </form>
-</div>
-
+{% block extra_css %}
 <style>
-    .booking-container {
-        max-width: 800px;
-        margin: 40px auto;
-        padding: 20px;
-        background: rgba(255, 255, 255, 0.95);
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    .booking-wrapper {
+        max-width: 860px;
+        margin: 32px auto;
     }
 
-    .booking-container h1 {
-        color: #333;
-        text-align: center;
-        margin-bottom: 30px;
-    }
-
-    .booking-info {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin-bottom: 30px;
-    }
-
-    .booking-info h2 {
-        color: #444;
-        margin-bottom: 15px;
-    }
-
-    .availability-info {
-        margin-top: 20px;
-    }
-
-    .availability-info h3 {
-        color: #555;
-        margin-bottom: 15px;
-    }
-
-    .time-slots {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    /* Attraction banner */
+    .booking-banner {
+        background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+        border-radius: var(--radius);
+        padding: 28px 32px;
+        color: #fff;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
         gap: 20px;
-        margin-top: 15px;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .booking-banner::after {
+        content: '';
+        position: absolute;
+        right: -30px;
+        top: -30px;
+        width: 160px;
+        height: 160px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.06);
+    }
+
+    .booking-banner-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        background: rgba(255,255,255,.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .booking-banner-icon i { font-size: 1.6rem; color: #fff; }
+
+    .booking-banner-info h2 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-bottom: 6px;
+    }
+
+    .booking-banner-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+    }
+
+    .booking-banner-meta span {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: .82rem;
+        color: rgba(255,255,255,.8);
+    }
+
+    .booking-banner-meta i { color: var(--accent); font-size: .75rem; }
+
+    /* Layout */
+    .booking-layout {
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        gap: 24px;
+    }
+
+    .booking-main { display: flex; flex-direction: column; gap: 20px; }
+
+    /* Availability */
+    .availability-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+    }
+
+    .availability-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .availability-card h3 i { color: var(--primary); font-size: .9rem; }
+
+    .availability-date {
+        font-size: .82rem;
+        color: var(--text-muted);
+        margin-bottom: 18px;
+    }
+
+    .slots-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
     }
 
     .slot-card {
-        background: white;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        transition: transform 0.2s;
+        border-radius: var(--radius-sm);
+        padding: 16px;
+        border: 1.5px solid var(--border);
+        background: var(--surface);
+        text-align: center;
+        transition: all .2s;
     }
 
-    .slot-card:hover {
-        transform: translateY(-2px);
+    .slot-card:not(.fully-booked):hover {
+        border-color: var(--primary-light);
+        background: var(--bg);
+    }
+
+    .slot-card.fully-booked {
+        background: #fef2f2;
+        border-color: #fca5a5;
+    }
+
+    .slot-icon {
+        font-size: 1.4rem;
+        margin-bottom: 6px;
     }
 
     .slot-card h4 {
-        color: #333;
-        margin-bottom: 5px;
+        font-size: .875rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 3px;
     }
 
-    .slot-card p {
-        color: #666;
-        font-size: 0.9em;
+    .slot-card.fully-booked h4 { color: #991b1b; }
+
+    .slot-time {
+        font-size: .72rem;
+        color: var(--text-muted);
         margin-bottom: 10px;
     }
 
     .slot-stats {
         display: flex;
         flex-direction: column;
-        gap: 5px;
-        font-size: 0.85em;
-        color: #555;
+        gap: 4px;
     }
 
-    .fully-booked {
-        background: #f8d7da;
-        border: 1px solid #f5c6cb;
-    }
-
-    .fully-booked h4 {
-        color: #721c24;
-    }
-
-    .booking-form {
+    .slot-stat {
         display: flex;
-        flex-direction: column;
-        gap: 20px;
+        justify-content: space-between;
+        font-size: .72rem;
+        color: var(--text-muted);
     }
+
+    .slot-stat .val {
+        font-weight: 700;
+        color: var(--text);
+    }
+
+    .slot-stat .val.available { color: #059669; }
+    .slot-stat .val.booked { color: #d97706; }
+
+    .fully-booked-badge {
+        display: inline-block;
+        margin-top: 8px;
+        padding: 3px 10px;
+        background: #fee2e2;
+        color: #991b1b;
+        border-radius: 50px;
+        font-size: .7rem;
+        font-weight: 700;
+    }
+
+    /* Form card */
+    .form-card {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 24px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+    }
+
+    .form-card h3 {
+        font-family: 'Playfair Display', serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-card h3 i { color: var(--primary); font-size: .9rem; }
 
     .form-group {
+        margin-bottom: 18px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: .875rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 7px;
+    }
+
+    .form-group input,
+    .form-group select {
+        width: 100%;
+        padding: 11px 14px;
+        border: 1.5px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: .9rem;
+        font-family: 'Inter', sans-serif;
+        color: var(--text);
+        background: var(--surface);
+        transition: border-color .2s, box-shadow .2s;
+        outline: none;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(124,58,237,.12);
+    }
+
+    .error-text { color: #ef4444; font-size: .8rem; margin-top: 5px; }
+
+    .submit-btn {
+        width: 100%;
+        padding: .85rem;
+        font-size: .95rem;
+        justify-content: center;
+    }
+
+    /* Sidebar info */
+    .booking-sidebar { display: flex; flex-direction: column; gap: 20px; }
+
+    .info-panel {
+        background: var(--surface);
+        border-radius: var(--radius);
+        padding: 22px;
+        box-shadow: var(--shadow);
+        border: 1px solid rgba(124,58,237,.08);
+    }
+
+    .info-panel h4 {
+        font-size: .875rem;
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .info-panel h4 i { color: var(--primary); }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 9px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: .85rem;
+    }
+
+    .info-row:last-child { border-bottom: none; }
+    .info-row .label { color: var(--text-muted); }
+    .info-row .value { font-weight: 600; color: var(--text); }
+
+    .tips-list {
+        list-style: none;
+        padding: 0;
         display: flex;
         flex-direction: column;
         gap: 8px;
     }
 
-    .form-group label {
-        font-weight: bold;
-        color: #555;
+    .tips-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: .82rem;
+        color: var(--text-muted);
+        line-height: 1.5;
     }
 
-    .form-group input,
-    .form-group select {
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        font-size: 16px;
-    }
+    .tips-list li i { color: var(--primary); margin-top: 2px; flex-shrink: 0; font-size: .75rem; }
 
-    .error-message {
-        color: #dc3545;
-        font-size: 14px;
-        margin-top: 5px;
-    }
-
-    .submit-btn {
-        background-color: #007bff;
-        color: white;
-        padding: 12px 24px;
-        border: none;
-        border-radius: 5px;
-        font-size: 16px;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-
-    .submit-btn:hover {
-        background-color: #0056b3;
-    }
-
-    .alert {
-        padding: 15px;
-        margin-bottom: 20px;
-        border-radius: 5px;
-    }
-
-    .alert-success {
-        background-color: #d4edda;
-        color: #155724;
-        border: 1px solid #c3e6cb;
-    }
-
-    .alert-error {
-        background-color: #f8d7da;
-        color: #721c24;
-        border: 1px solid #f5c6cb;
+    @media (max-width: 768px) {
+        .booking-layout { grid-template-columns: 1fr; }
+        .slots-grid { grid-template-columns: 1fr; }
+        .booking-banner { flex-direction: column; align-items: flex-start; }
     }
 </style>
-{% endblock %} 
+{% endblock %}
+
+{% block content %}
+<div class="booking-wrapper">
+    <!-- Banner -->
+    <div class="booking-banner">
+        <div class="booking-banner-icon">
+            <i class="fas fa-landmark"></i>
+        </div>
+        <div class="booking-banner-info">
+            <h2>{{ attraction.name }}</h2>
+            <div class="booking-banner-meta">
+                <span><i class="fas fa-map-marker-alt"></i>{{ attraction.city.name }}</span>
+                {% if attraction.opening_time %}
+                <span><i class="fas fa-clock"></i>{{ attraction.opening_time|time:"g:i A" }} – {{ attraction.closing_time|time:"g:i A" }}</span>
+                {% endif %}
+                <span><i class="fas fa-hourglass-half"></i>~{{ attraction.duration_minutes }} min visit</span>
+                <span><i class="fas fa-star"></i>{{ attraction.rating }}/5</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="booking-layout">
+        <!-- Main -->
+        <div class="booking-main">
+            <!-- Availability -->
+            <div class="availability-card">
+                <h3><i class="fas fa-calendar-check"></i>Slot Availability</h3>
+                <div class="availability-date">
+                    Showing availability for <strong>{{ selected_date|date:"l, F j, Y" }}</strong>
+                </div>
+                <div class="slots-grid">
+                    <div class="slot-card {% if availabilities.morning.available == 0 %}fully-booked{% endif %}">
+                        <div class="slot-icon">🌅</div>
+                        <h4>Morning</h4>
+                        <div class="slot-time">9:00 AM – 12:00 PM</div>
+                        <div class="slot-stats">
+                            <div class="slot-stat">
+                                <span>Available</span>
+                                <span class="val available">{{ availabilities.morning.available }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Booked</span>
+                                <span class="val booked">{{ availabilities.morning.booked }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Capacity</span>
+                                <span class="val">{{ availabilities.morning.total_capacity }}</span>
+                            </div>
+                        </div>
+                        {% if availabilities.morning.available == 0 %}
+                            <span class="fully-booked-badge">Fully Booked</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="slot-card {% if availabilities.afternoon.available == 0 %}fully-booked{% endif %}">
+                        <div class="slot-icon">☀️</div>
+                        <h4>Afternoon</h4>
+                        <div class="slot-time">12:00 PM – 3:00 PM</div>
+                        <div class="slot-stats">
+                            <div class="slot-stat">
+                                <span>Available</span>
+                                <span class="val available">{{ availabilities.afternoon.available }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Booked</span>
+                                <span class="val booked">{{ availabilities.afternoon.booked }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Capacity</span>
+                                <span class="val">{{ availabilities.afternoon.total_capacity }}</span>
+                            </div>
+                        </div>
+                        {% if availabilities.afternoon.available == 0 %}
+                            <span class="fully-booked-badge">Fully Booked</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="slot-card {% if availabilities.evening.available == 0 %}fully-booked{% endif %}">
+                        <div class="slot-icon">🌆</div>
+                        <h4>Evening</h4>
+                        <div class="slot-time">3:00 PM – 6:00 PM</div>
+                        <div class="slot-stats">
+                            <div class="slot-stat">
+                                <span>Available</span>
+                                <span class="val available">{{ availabilities.evening.available }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Booked</span>
+                                <span class="val booked">{{ availabilities.evening.booked }}</span>
+                            </div>
+                            <div class="slot-stat">
+                                <span>Capacity</span>
+                                <span class="val">{{ availabilities.evening.total_capacity }}</span>
+                            </div>
+                        </div>
+                        {% if availabilities.evening.available == 0 %}
+                            <span class="fully-booked-badge">Fully Booked</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div class="form-card">
+                <h3><i class="fas fa-ticket-alt"></i>Complete Your Booking</h3>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-group">
+                        <label for="{{ form.date.id_for_label }}">
+                            <i class="fas fa-calendar" style="color:var(--primary);margin-right:6px;"></i>Select Date
+                        </label>
+                        {{ form.date }}
+                        {% if form.date.errors %}<div class="error-text">{{ form.date.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.time_slot.id_for_label }}">
+                            <i class="fas fa-clock" style="color:var(--primary);margin-right:6px;"></i>Select Time Slot
+                        </label>
+                        {{ form.time_slot }}
+                        {% if form.time_slot.errors %}<div class="error-text">{{ form.time_slot.errors }}</div>{% endif %}
+                    </div>
+
+                    <div class="form-group">
+                        <label for="{{ form.number_of_people.id_for_label }}">
+                            <i class="fas fa-users" style="color:var(--primary);margin-right:6px;"></i>Number of People
+                        </label>
+                        {{ form.number_of_people }}
+                        {% if form.number_of_people.errors %}<div class="error-text">{{ form.number_of_people.errors }}</div>{% endif %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary submit-btn">
+                        <i class="fas fa-check-circle"></i>Confirm Booking
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="booking-sidebar">
+            <div class="info-panel">
+                <h4><i class="fas fa-info-circle"></i>Attraction Details</h4>
+                <div class="info-row">
+                    <span class="label">Location</span>
+                    <span class="value">{{ attraction.city.name }}</span>
+                </div>
+                {% if attraction.opening_time %}
+                <div class="info-row">
+                    <span class="label">Opens</span>
+                    <span class="value">{{ attraction.opening_time|time:"g:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Closes</span>
+                    <span class="value">{{ attraction.closing_time|time:"g:i A" }}</span>
+                </div>
+                {% endif %}
+                <div class="info-row">
+                    <span class="label">Duration</span>
+                    <span class="value">~{{ attraction.duration_minutes }} min</span>
+                </div>
+                <div class="info-row">
+                    <span class="label">Rating</span>
+                    <span class="value">⭐ {{ attraction.rating }}/5</span>
+                </div>
+            </div>
+
+            <div class="info-panel">
+                <h4><i class="fas fa-lightbulb"></i>Visitor Tips</h4>
+                <ul class="tips-list">
+                    <li><i class="fas fa-check"></i>Arrive 15 minutes before your slot</li>
+                    <li><i class="fas fa-check"></i>Carry a valid photo ID</li>
+                    <li><i class="fas fa-check"></i>Wear comfortable walking shoes</li>
+                    <li><i class="fas fa-check"></i>Photography may be restricted inside</li>
+                    <li><i class="fas fa-check"></i>Keep your booking confirmation handy</li>
+                </ul>
+            </div>
+
+            <a href="{% url 'attraction_detail' attraction.type attraction.id %}" class="btn btn-secondary" style="justify-content:center;">
+                <i class="fas fa-arrow-left"></i>Back to Attraction
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        const dateInput = document.getElementById("id_date");
+        if (!dateInput) return;
+        // Only reload to refresh availability when user leaves the date field (blur)
+        // This prevents reload while typing/selecting
+        dateInput.addEventListener("blur", function () {
+            const selected = this.value;
+            if (!selected) return;
+            // Only reload if the date actually changed from what's in the URL
+            const url = new URL(window.location.href);
+            const currentDate = url.searchParams.get("date");
+            if (currentDate === selected) return;
+            url.searchParams.set("date", selected);
+            window.location.href = url.toString();
+        });
+    })();
+</script>
+{% endblock %}

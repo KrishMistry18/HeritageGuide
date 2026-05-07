@@ -89,7 +89,7 @@ class ItineraryForm(forms.Form):
         super().__init__(*args, **kwargs)
         # Populate cities choices from database
         cities = City.objects.all()
-        self.fields['cities'].choices = [(city.name.lower(), city.name) for city in cities]
+        self.fields['cities'].choices = [(str(city.id), city.name) for city in cities]
 
     def clean(self):
         cleaned_data = super().clean()
@@ -185,5 +185,48 @@ class SignUpForm(forms.ModelForm):
                 phone_number=self.cleaned_data.get('phone_number')
             )
         return user
+
+
+class ProfileUpdateForm(forms.ModelForm):
+    first_name = forms.CharField(max_length=150, required=False)
+    last_name = forms.CharField(max_length=150, required=False)
+    email = forms.EmailField(required=True)
+
+    class Meta:
+        model = Profile
+        fields = ("phone_number", "birth_date")
+        widgets = {
+            "birth_date": forms.DateInput(attrs={"type": "date"}),
+            "phone_number": forms.TextInput(attrs={"placeholder": "+91XXXXXXXXXX"}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+        if self.user:
+            self.fields["first_name"].initial = self.user.first_name
+            self.fields["last_name"].initial = self.user.last_name
+            self.fields["email"].initial = self.user.email
+
+    def clean_email(self):
+        email = self.cleaned_data["email"].strip().lower()
+        query = User.objects.filter(email__iexact=email)
+        if self.user:
+            query = query.exclude(id=self.user.id)
+        if query.exists():
+            raise forms.ValidationError("This email is already used by another account.")
+        return email
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        if self.user:
+            self.user.first_name = self.cleaned_data.get("first_name", "").strip()
+            self.user.last_name = self.cleaned_data.get("last_name", "").strip()
+            self.user.email = self.cleaned_data.get("email", "").strip().lower()
+            if commit:
+                self.user.save()
+        if commit:
+            profile.save()
+        return profile
 
     
