@@ -131,15 +131,16 @@ class Attraction(models.Model):
         return [tag.strip() for tag in self.interest_tags.split(',') if tag.strip()]
 
     def get_image_url(self):
-        """Returns a URL that works both locally and on Vercel."""
+        """Returns a working image URL for both local and Vercel deployment."""
         if not self.image:
             return None
         img_str = str(self.image)
-        # If already a heritage-images path, serve from static
-        if img_str.startswith('heritage-images/'):
-            return f'/static/{img_str}'
-        # Legacy media path
-        return f'/media/{img_str}'
+        # Full URL already (e.g. http/https)
+        if img_str.startswith('http'):
+            return img_str
+        # heritage-images/ path → serve from GitHub raw (works on Vercel)
+        filename = img_str.replace('heritage-images/', '').split('/')[-1]
+        return f'https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/heritage-images/{filename}'
 
 class Itinerary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
