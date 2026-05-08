@@ -4,7 +4,7 @@ Discover cities like a local. HistoryGate is a Django-powered travel companion t
 
 <br>🔗 **Live Demo: https://heritage-guide.vercel.app/
 
-## ✨ Highlights
+<br>## ✨ Highlights
 - 🗺️ **Interactive Map**: Works out of the box using Leaflet + OpenStreetMap (no API key needed). If you add a Google API key, the page upgrades to Place Search + Drawing.
 - 🧭 **Smart Directions**: Get driving/walking/cycling/transit routes with a single click (Leaflet Routing Machine via OSRM).
 - 🏷️ **Points of Interest**: Curated markers for historic sites, museums, and monuments with quick actions.
