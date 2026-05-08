@@ -5,18 +5,23 @@ Management command: setup_4cities
 - Assigns existing media images to attractions
 """
 from django.core.management.base import BaseCommand
-from django.core.files import File
 from users.models import City, Attraction, AttractionType
 from datetime import time
 import os
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+# Images are in static/heritage-images/ (committed to git, works on Vercel)
+STATIC_IMG = os.path.join(BASE_DIR, 'static', 'heritage-images')
+# Fallback to old media path for local dev
 MEDIA_IMG = os.path.join(BASE_DIR, 'media', 'users', 'images')
 
 
 def img(filename):
-    """Return full path to a media image file."""
+    """Return full path to an image file — checks static first, then media."""
+    static_path = os.path.join(STATIC_IMG, filename)
+    if os.path.exists(static_path):
+        return static_path
     return os.path.join(MEDIA_IMG, filename)
 
 
@@ -228,15 +233,12 @@ class Command(BaseCommand):
             'Mani Bhavan Gandhi Museum':                'Mani_Bhavan_Gandhi_Museum.jpeg',
         }
         for name, fname in mumbai_images.items():
-            path = img(fname)
-            if not os.path.exists(path):
-                continue
             qs = Attraction.objects.filter(name=name, city=mumbai)
             if qs.exists():
                 a = qs.first()
                 if not a.image:
-                    with open(path, 'rb') as f:
-                        a.image.save(fname, File(f), save=True)
+                    a.image = f'heritage-images/{fname}'
+                    a.save(update_fields=['image'])
                     self.stdout.write(f'  Image set for Mumbai: {name}')
 
         # ── 7. Create/update Chennai, Hyderabad, Gujarat attractions ──────
@@ -249,17 +251,15 @@ class Command(BaseCommand):
                     defaults={k: v for k, v in d.items() if k != 'name'}
                 )
                 if not created:
-                    # Update fields if attraction already exists
                     for k, v in d.items():
                         if k != 'name':
                             setattr(a, k, v)
                     a.save()
 
-                # Assign image
-                path = img(fname)
-                if os.path.exists(path) and not a.image:
-                    with open(path, 'rb') as f:
-                        a.image.save(fname, File(f), save=True)
+                # Set image path directly (images are in static/heritage-images/)
+                if not a.image:
+                    a.image = f'heritage-images/{fname}'
+                    a.save(update_fields=['image'])
 
                 action = 'Created' if created else 'Updated'
                 self.stdout.write(f'  {action}: {city.name} — {a.name}')
