@@ -121,7 +121,7 @@ class Attraction(models.Model):
     duration_minutes = models.IntegerField(default=60, help_text="Estimated time to spend here (minutes)")
     reviews = models.TextField(blank=True)
     rating = models.DecimalField(max_digits=3, decimal_places=1, default=4.0)
-    image = models.ImageField(upload_to='attractions/', blank=True, null=True)
+    image = models.ImageField(upload_to='attractions/', blank=True, null=True, max_length=500)
     interest_tags = models.CharField(max_length=100, blank=True, help_text="Comma-separated tags like 'culture,food,history'")
     
     def __str__(self):
