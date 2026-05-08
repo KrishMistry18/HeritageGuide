@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
 
 {% block title %}HeritageGuide - Discover India's Heritage{% endblock %}
@@ -80,11 +80,11 @@
 {% block content %}
 <section class="hero">
   <div class="hero-photos">
-    <div class="hp hp-main"><img src="/media/users/images/Gateway_of_India.jpg" alt="Gateway of India"></div>
-    <div class="hp"><img src="/media/users/images/Charminar.jpg" alt="Charminar Hyderabad"></div>
-    <div class="hp"><img src="/media/users/images/Rani_Ki_Vav__The_Queens_Stepwell_Patan.jpeg" alt="Rani Ki Vav Gujarat"></div>
-    <div class="hp"><img src="/media/users/images/Golkonda_fort.jpeg" alt="Golconda Fort"></div>
-    <div class="hp"><img src="/media/users/images/Fort_St._George_.jpeg" alt="Fort St George Chennai"></div>
+    <div class="hp hp-main"><img src="/static/heritage-images/Gateway_of_India.jpg" alt="Gateway of India"></div>
+    <div class="hp"><img src="/static/heritage-images/Charminar.jpg" alt="Charminar Hyderabad"></div>
+    <div class="hp"><img src="/static/heritage-images/Rani_Ki_Vav__The_Queens_Stepwell_Patan.jpeg" alt="Rani Ki Vav Gujarat"></div>
+    <div class="hp"><img src="/static/heritage-images/Golkonda_fort.jpeg" alt="Golconda Fort"></div>
+    <div class="hp"><img src="/static/heritage-images/Fort_St._George_.jpeg" alt="Fort St George Chennai"></div>
   </div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
@@ -133,7 +133,7 @@
     <div class="city-card-overlay"><div class="city-card-name">Chennai</div><div class="city-card-sub"><i class="fas fa-map-marker-alt"></i>Tamil Nadu</div></div>
   </a>
   <a href="{% url 'monuments' %}?city=Hyderabad" class="city-card">
-    <img src="/media/users/images/Charminar.jpg" alt="Hyderabad" loading="lazy">
+    <img src="/static/heritage-images/Charminar.jpg" alt="Hyderabad" loading="lazy">
     <div class="city-card-overlay"><div class="city-card-name">Hyderabad</div><div class="city-card-sub"><i class="fas fa-map-marker-alt"></i>Telangana</div></div>
   </a>
   <a href="{% url 'monuments' %}?city=Gujarat" class="city-card">
@@ -174,3 +174,4 @@
   <a href="{% url 'signup' %}" class="btn-white"><i class="fas fa-arrow-right"></i>Get Started Free</a>
 </div>
 {% endblock %}
+

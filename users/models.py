@@ -130,6 +130,17 @@ class Attraction(models.Model):
     def get_interest_tags_list(self):
         return [tag.strip() for tag in self.interest_tags.split(',') if tag.strip()]
 
+    def get_image_url(self):
+        """Returns a URL that works both locally and on Vercel."""
+        if not self.image:
+            return None
+        img_str = str(self.image)
+        # If already a heritage-images path, serve from static
+        if img_str.startswith('heritage-images/'):
+            return f'/static/{img_str}'
+        # Legacy media path
+        return f'/media/{img_str}'
+
 class Itinerary(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100, default="My Itinerary")

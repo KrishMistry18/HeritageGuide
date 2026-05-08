@@ -316,7 +316,7 @@
 <!-- Hero Image -->
 <div class="detail-hero">
     {% if attraction.image %}
-        <img src="{{ attraction.image.url }}" alt="{{ attraction.name }}">
+        <img src="{{ attraction.get_image_url }}" alt="{{ attraction.name }}">
     {% else %}
         <img src="{% static 'img/hero.jpg' %}" alt="{{ attraction.name }}" style="filter:brightness(.7);">
     {% endif %}
@@ -462,7 +462,7 @@
         {% for item in related_attractions %}
         <a href="{% url 'attraction_detail' item.type item.id %}" class="related-card">
             {% if item.image %}
-                <div class="related-card-img"><img src="{{ item.image.url }}" alt="{{ item.name }}"></div>
+                <div class="related-card-img"><img src="{{ item.get_image_url }}" alt="{{ item.name }}"></div>
             {% else %}
                 <div class="related-card-img-placeholder">
                     <i class="fas fa-{% if item.type == 'museum' %}university{% elif item.type == 'monument' %}landmark{% elif item.type == 'event' %}calendar-star{% else %}map-marker-alt{% endif %}"></i>

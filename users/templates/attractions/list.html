@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}{{ title }} — HeritageGuide{% endblock %}
+{% block title %}{{ title }} â€” HeritageGuide{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -336,7 +336,7 @@
         <span class="city-filter-img">
             {% if city.name == 'Mumbai' %}<img src="{% static 'img/gateway.jpg' %}" alt="Mumbai">
             {% elif city.name == 'Chennai' %}<img src="{% static 'img/chennai.jpg' %}" alt="Chennai">
-            {% elif city.name == 'Hyderabad' %}<img src="/media/users/images/Charminar.jpg" alt="Hyderabad">
+            {% elif city.name == 'Hyderabad' %}<img src="/static/heritage-images/Charminar.jpg" alt="Hyderabad">
             {% elif city.name == 'Gujarat' %}<img src="{% static 'img/White Rann.png' %}" alt="Gujarat">
             {% else %}<i class="fas fa-city"></i>{% endif %}
         </span>
@@ -351,7 +351,7 @@
         <a href="{% url 'attraction_detail' attraction.type attraction.id %}" class="attraction-card">
             <div class="attraction-card-img">
                 {% if attraction.image %}
-                    <img src="{{ attraction.image.url }}" alt="{{ attraction.name }}" loading="lazy">
+                    <img src="{{ attraction.get_image_url }}" alt="{{ attraction.name }}" loading="lazy">
                 {% else %}
                     <div class="attraction-card-img-placeholder">
                         <i class="fas fa-{% if attraction.type == 'museum' %}university{% elif attraction.type == 'monument' %}landmark{% elif attraction.type == 'event' %}calendar-star{% else %}map-marker-alt{% endif %}"></i>
@@ -378,8 +378,9 @@
         <div class="empty-state" style="grid-column:1/-1;">
             <i class="fas fa-search"></i>
             <h3>No attractions found</h3>
-            <p>Check back soon — we're adding more heritage sites.</p>
+            <p>Check back soon â€” we're adding more heritage sites.</p>
         </div>
     {% endfor %}
 </div>
 {% endblock %}
+

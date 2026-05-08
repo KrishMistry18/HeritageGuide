@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 {% load static %}
 
-{% block title %}Create Itinerary — HeritageGuide{% endblock %}
+{% block title %}Create Itinerary â€” HeritageGuide{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -373,7 +373,7 @@
     }
 
     .tips-card li::before {
-        content: '✦';
+        content: 'âœ¦';
         color: var(--primary);
         flex-shrink: 0;
         margin-top: 1px;
@@ -439,7 +439,7 @@
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="city-select-card" data-city-name="Hyderabad">
-                        <img src="/media/users/images/Charminar.jpg" alt="Hyderabad">
+                        <img src="/static/heritage-images/Charminar.jpg" alt="Hyderabad">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Hyderabad</div>
                             <div class="city-select-state">Telangana</div>
@@ -501,37 +501,37 @@
 
                 <div class="interest-cards-grid" id="interestCardsGrid">
                     <div class="interest-card" data-interest="culture">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">🏛️</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">ðŸ›ï¸</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Culture</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="adventure">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);">🧗</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);">ðŸ§—</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Adventure</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="relaxation">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);">🧘</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);">ðŸ§˜</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Relaxation</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="food">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f59e0b,#d97706);">🍛</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f59e0b,#d97706);">ðŸ›</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Food</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="nature">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);">🌿</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);">ðŸŒ¿</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Nature</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="shopping">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);">🛍️</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);">ðŸ›ï¸</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Shopping</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="entertainment">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);">🎭</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);">ðŸŽ­</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Entertainment</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
@@ -553,7 +553,7 @@
     <div class="tips-card">
         <h4><i class="fas fa-lightbulb"></i>Planning Tips</h4>
         <ul>
-            <li>Select 2–4 cities for the best experience — more cities means more days needed.</li>
+            <li>Select 2â€“4 cities for the best experience â€” more cities means more days needed.</li>
             <li>Choose interests that match your travel style for a personalised itinerary.</li>
             <li>Budget is used to suggest appropriate activities and accommodation options.</li>
             <li>You can book individual attractions directly from your generated itinerary.</li>
@@ -563,7 +563,7 @@
 
 <script>
 (function () {
-    // ── Sync city cards with hidden checkboxes ──
+    // â”€â”€ Sync city cards with hidden checkboxes â”€â”€
     const cityCards = document.querySelectorAll('.city-select-card');
     const cityCheckboxes = document.querySelectorAll('#citiesField input[type="checkbox"]');
 
@@ -583,7 +583,7 @@
         });
     });
 
-    // ── Sync interest cards with hidden checkboxes ──
+    // â”€â”€ Sync interest cards with hidden checkboxes â”€â”€
     const interestCards = document.querySelectorAll('.interest-card');
     const interestCheckboxes = document.querySelectorAll('#interestsField input[type="checkbox"]');
 
@@ -604,3 +604,4 @@
 })();
 </script>
 {% endblock %}
+
