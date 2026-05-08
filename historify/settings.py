@@ -11,32 +11,27 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from django.contrib.messages import constants as messages
 from dotenv import load_dotenv
 import dj_database_url
 import os
-import openai
 
-# Other existing settings...
-openai.api_key = os.getenv('OPENAI_API_KEY')
-
-# Google Maps API Key
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', 'YOUR_API_KEY_HERE')
-
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Load environment variables
+# Load .env for local development (no-op on Vercel where env vars are injected)
 load_dotenv(os.path.join(BASE_DIR, '.env'))
+
 SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-me")
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
-
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", "True").lower() == "true"
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if host.strip()]
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "127.0.0.1,localhost").split(",") if h.strip()]
+
+# Optional API keys — app works without these, features are just disabled
+GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY', '')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY', '')
+
+# Only set OpenAI key if provided
+if OPENAI_API_KEY:
+    import openai
+    openai.api_key = OPENAI_API_KEY
 
 
 # Application definition
@@ -185,14 +180,8 @@ LOGIN_URL = "/login/"
 
 SOCIALACCOUNT_PROVIDERS = {
     "google": {
-        "SCOPE": [
-            "profile",
-            "email",
-        ],
-        "AUTH_PARAMS": {
-            "access_type": "online",
-        },
-        # Configure via environment variables; do not hardcode secrets.
+        "SCOPE": ["profile", "email"],
+        "AUTH_PARAMS": {"access_type": "online"},
         "APP": {
             "client_id": os.getenv("GOOGLE_CLIENT_ID", ""),
             "secret": os.getenv("GOOGLE_CLIENT_SECRET", ""),
@@ -200,7 +189,7 @@ SOCIALACCOUNT_PROVIDERS = {
         },
     }
 }
-SOCIALACCOUNT_LOGIN_ON_GET=True
+SOCIALACCOUNT_LOGIN_ON_GET = True
 
 # Allauth settings
 ACCOUNT_EMAIL_VERIFICATION = 'none'
