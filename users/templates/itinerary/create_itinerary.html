@@ -423,7 +423,7 @@
                 <!-- Visual city image cards (JS-driven) -->
                 <div class="city-cards-grid" id="cityCardsGrid">
                     <div class="city-select-card" data-city-name="Mumbai">
-                        <img src="{% static 'img/gateway.jpg' %}" alt="Mumbai">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/gateway.jpg" alt="Mumbai">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Mumbai</div>
                             <div class="city-select-state">Maharashtra</div>
@@ -431,7 +431,7 @@
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="city-select-card" data-city-name="Chennai">
-                        <img src="{% static 'img/chennai.jpg' %}" alt="Chennai">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/chennai.jpg" alt="Chennai">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Chennai</div>
                             <div class="city-select-state">Tamil Nadu</div>
@@ -439,7 +439,7 @@
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="city-select-card" data-city-name="Hyderabad">
-                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/heritage-images/Charminar.jpg" alt="Hyderabad">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/mainhttps://raw.githubusercontent.com/KrishMistry18/HeritageGuide/mainhttps://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/heritage-images/Charminar.jpg" alt="Hyderabad">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Hyderabad</div>
                             <div class="city-select-state">Telangana</div>
@@ -447,7 +447,7 @@
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="city-select-card" data-city-name="Gujarat">
-                        <img src="{% static 'img/White Rann.png' %}" alt="Gujarat">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/White Rann.png" alt="Gujarat">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Gujarat</div>
                             <div class="city-select-state">Western India</div>
@@ -500,18 +500,71 @@
                 <div class="form-section-title"><i class="fas fa-heart"></i>Interests</div>
 
                 <div class="interest-cards-grid" id="interestCardsGrid">
+<div class="interest-card" data-interest="culture"><div class="interest-card-bg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);"><i class="fas fa-landmark" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Culture</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="adventure"><div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);"><i class="fas fa-hiking" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Adventure</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="relaxation"><div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);"><i class="fas fa-spa" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Relaxation</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="food"><div class="interest-card-bg" style="background:linear-gradient(135deg,#f59e0b,#d97706);"><i class="fas fa-utensils" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Food</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="nature"><div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);"><i class="fas fa-leaf" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Nature</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="shopping"><div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);"><i class="fas fa-shopping-bag" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Shopping</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+<div class="interest-card" data-interest="entertainment"><div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);"><i class="fas fa-theater-masks" style="font-size:2rem;color:rgba(255,255,255,.8);"></i></div><div class="interest-card-overlay"><div class="interest-card-name">Entertainment</div></div><div class="interest-card-check"><i class="fas fa-check"></i></div></div>
+</div>
+
+<!-- Hidden real Django checkboxes (submitted with form) -->
+                <div class="cities-field" id="citiesField">{{ form.cities }}</div>
+                {% if form.cities.errors %}<div class="error-text" style="margin-top:8px;">{{ form.cities.errors }}</div>{% endif %}
+            </div>
+
+            <!-- Dates -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-calendar-alt"></i>Travel Dates</div>
+                <div class="date-row">
+                    <div class="form-group">
+                        <label for="{{ form.start_date.id_for_label }}">{{ form.start_date.label }}</label>
+                        {{ form.start_date }}
+                        {% if form.start_date.errors %}<div class="error-text">{{ form.start_date.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.end_date.id_for_label }}">{{ form.end_date.label }}</label>
+                        {{ form.end_date }}
+                        {% if form.end_date.errors %}<div class="error-text">{{ form.end_date.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transport & Budget -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-car"></i>Transport & Budget</div>
+                <div class="date-row">
+                    <div class="form-group">
+                        <label for="{{ form.transportation_type.id_for_label }}">{{ form.transportation_type.label }}</label>
+                        {{ form.transportation_type }}
+                        {% if form.transportation_type.errors %}<div class="error-text">{{ form.transportation_type.errors }}</div>{% endif %}
+                    </div>
+                    <div class="form-group">
+                        <label for="{{ form.total_budget.id_for_label }}">{{ form.total_budget.label }}</label>
+                        {{ form.total_budget }}
+                        {% if form.total_budget.errors %}<div class="error-text">{{ form.total_budget.errors }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interests -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="fas fa-heart"></i>Interests</div>
+
+                <div class="interest-cards-grid" id="interestCardsGrid">
                     <div class="interest-card" data-interest="culture">
                         <div class="interest-card-bg" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);">ðŸ›ï¸</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Culture</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="adventure">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);">ðŸ§—</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#059669,#065f46);">&#129495;</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Adventure</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="relaxation">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);">ðŸ§˜</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);">&#129496;</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Relaxation</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
@@ -521,17 +574,17 @@
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="nature">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);">ðŸŒ¿</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#16a34a,#14532d);">&#127807;</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Nature</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="shopping">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);">ðŸ›ï¸</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#ec4899,#be185d);">&#127859;ï¸</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Shopping</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
                     <div class="interest-card" data-interest="entertainment">
-                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);">ðŸŽ­</div>
+                        <div class="interest-card-bg" style="background:linear-gradient(135deg,#f97316,#c2410c);">&#127917;</div>
                         <div class="interest-card-overlay"><div class="interest-card-name">Entertainment</div></div>
                         <div class="interest-card-check"><i class="fas fa-check"></i></div>
                     </div>
