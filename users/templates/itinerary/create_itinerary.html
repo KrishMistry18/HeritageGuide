@@ -422,7 +422,7 @@
 
                 <!-- Visual city image cards (JS-driven) -->
                 <div class="city-cards-grid" id="cityCardsGrid">
-                    <div class="city-select-card" data-city-name="Mumbai">
+                    <div class="city-select-card" data-city-name="Mumbai" data-city-label="Mumbai">
                         <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/gateway.jpg" alt="Mumbai">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Mumbai</div>
@@ -430,7 +430,7 @@
                         </div>
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="city-select-card" data-city-name="Chennai">
+                    <div class="city-select-card" data-city-name="Chennai" data-city-label="Chennai">
                         <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/chennai.jpg" alt="Chennai">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Chennai</div>
@@ -438,16 +438,16 @@
                         </div>
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="city-select-card" data-city-name="Hyderabad">
-                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/mainhttps://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/heritage-images/Charminar.jpg" alt="Hyderabad">
+                    <div class="city-select-card" data-city-name="Hyderabad" data-city-label="Hyderabad">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/heritage-images/Charminar.jpg" alt="Hyderabad">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Hyderabad</div>
                             <div class="city-select-state">Telangana</div>
                         </div>
                         <div class="city-select-check"><i class="fas fa-check"></i></div>
                     </div>
-                    <div class="city-select-card" data-city-name="Gujarat">
-                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/White Rann.png" alt="Gujarat">
+                    <div class="city-select-card" data-city-name="Gujarat" data-city-label="Gujarat">
+                        <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/White%20Rann.png" alt="Gujarat">
                         <div class="city-select-overlay">
                             <div class="city-select-name">Gujarat</div>
                             <div class="city-select-state">Western India</div>
@@ -536,26 +536,23 @@
 <script>
 (function () {
     // â”€â”€ Sync city cards with hidden checkboxes â”€â”€
-    const cityCards = document.querySelectorAll('.city-select-card');
+        const cityCards = document.querySelectorAll('.city-select-card');
     const cityCheckboxes = document.querySelectorAll('#citiesField input[type="checkbox"]');
 
-    const cityCbMap = {};
-    cityCheckboxes.forEach(cb => {
-        const lbl = cb.closest('li') ? cb.closest('li').querySelector('label') : null;
-        if (lbl) cityCbMap[lbl.textContent.trim()] = cb;
-    });
-
     cityCards.forEach(card => {
-        const cityName = card.dataset.cityName;
-        const cb = cityCbMap[cityName];
-        if (cb && cb.checked) card.classList.add('selected');
+        const cityName = (card.dataset.cityName || '').trim().toLowerCase();
+        let matchedCb = null;
+        cityCheckboxes.forEach(cb => {
+            const lbl = cb.closest('li') ? cb.closest('li').querySelector('label') : null;
+            if (lbl && lbl.textContent.trim().toLowerCase() === cityName) matchedCb = cb;
+        });
+        if (matchedCb && matchedCb.checked) card.classList.add('selected');
         card.addEventListener('click', () => {
             card.classList.toggle('selected');
-            if (cb) cb.checked = card.classList.contains('selected');
+            if (matchedCb) matchedCb.checked = card.classList.contains('selected');
         });
     });
 
-    // â”€â”€ Sync interest cards with hidden checkboxes â”€â”€
     const interestCards = document.querySelectorAll('.interest-card');
     const interestCheckboxes = document.querySelectorAll('#interestsField input[type="checkbox"]');
 
