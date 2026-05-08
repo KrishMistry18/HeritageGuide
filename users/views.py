@@ -26,13 +26,11 @@ from anthropic import Anthropic
 import traceback
 from .supabase_client import get_supabase_anon_client
 
-
 logger = logging.getLogger(__name__)
 
-# Configure Claude API
-anthropic_client = Anthropic(
-    api_key=os.getenv('ANTHROPIC_API_KEY')
-)
+# Configure Claude API — optional, chatbot disabled if key not set
+_anthropic_key = os.getenv('ANTHROPIC_API_KEY', '')
+anthropic_client = Anthropic(api_key=_anthropic_key) if _anthropic_key else None
 
 @csrf_exempt
 def get_response(request):
@@ -46,6 +44,9 @@ def get_response(request):
 
             if not user_message:
                 return JsonResponse({'error': 'Message cannot be empty'}, status=400)
+
+            if not anthropic_client:
+                return JsonResponse({'error': 'AI chatbot is not configured. Please add ANTHROPIC_API_KEY.'}, status=503)
 
             try:
                 # Generate response using Claude
