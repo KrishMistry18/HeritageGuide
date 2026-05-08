@@ -127,6 +127,8 @@
     .slot-card:not(.fully-booked):hover {
         border-color: var(--primary-light);
         background: var(--bg);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(124,58,237,.15);
     }
 
     .slot-card.fully-booked {
@@ -342,7 +344,7 @@
                     Showing availability for <strong>{{ selected_date|date:"l, F j, Y" }}</strong>
                 </div>
                 <div class="slots-grid">
-                    <div class="slot-card {% if availabilities.morning.available == 0 %}fully-booked{% endif %}">
+                    <div class="slot-card {% if availabilities.morning.available == 0 %}fully-booked{% endif %}" onclick="selectSlot('morning')" style="cursor:pointer;" id="slot-morning">
                         <div class="slot-icon">🌅</div>
                         <h4>Morning</h4>
                         <div class="slot-time">9:00 AM – 12:00 PM</div>
@@ -365,7 +367,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="slot-card {% if availabilities.afternoon.available == 0 %}fully-booked{% endif %}">
+                    <div class="slot-card {% if availabilities.afternoon.available == 0 %}fully-booked{% endif %}" onclick="selectSlot('afternoon')" style="cursor:pointer;" id="slot-afternoon">
                         <div class="slot-icon">☀️</div>
                         <h4>Afternoon</h4>
                         <div class="slot-time">12:00 PM – 3:00 PM</div>
@@ -388,7 +390,7 @@
                         {% endif %}
                     </div>
 
-                    <div class="slot-card {% if availabilities.evening.available == 0 %}fully-booked{% endif %}">
+                    <div class="slot-card {% if availabilities.evening.available == 0 %}fully-booked{% endif %}" onclick="selectSlot('evening')" style="cursor:pointer;" id="slot-evening">
                         <div class="slot-icon">🌆</div>
                         <h4>Evening</h4>
                         <div class="slot-time">3:00 PM – 6:00 PM</div>
@@ -426,6 +428,9 @@
                         </label>
                         {{ form.date }}
                         {% if form.date.errors %}<div class="error-text">{{ form.date.errors }}</div>{% endif %}
+                        <p style="font-size:.75rem;color:var(--text-muted);margin-top:4px;">
+                            <i class="fas fa-info-circle"></i> After selecting a date, availability will update automatically.
+                        </p>
                     </div>
 
                     <div class="form-group">
@@ -498,21 +503,53 @@
 </div>
 
 <script>
-    (function () {
-        const dateInput = document.getElementById("id_date");
-        if (!dateInput) return;
-        // Only reload to refresh availability when user leaves the date field (blur)
-        // This prevents reload while typing/selecting
-        dateInput.addEventListener("blur", function () {
-            const selected = this.value;
-            if (!selected) return;
-            // Only reload if the date actually changed from what's in the URL
-            const url = new URL(window.location.href);
-            const currentDate = url.searchParams.get("date");
-            if (currentDate === selected) return;
-            url.searchParams.set("date", selected);
-            window.location.href = url.toString();
-        });
-    })();
+(function () {
+    const dateInput = document.getElementById("id_date");
+    if (!dateInput) return;
+
+    dateInput.addEventListener("change", function () {
+        const selected = this.value;
+        if (!selected || selected.length < 8) return;
+        const url = new URL(window.location.href);
+        const currentDate = url.searchParams.get("date");
+        if (currentDate === selected) return;
+        document.querySelectorAll('.slot-card').forEach(c => c.style.opacity = '0.5');
+        url.searchParams.set("date", selected);
+        window.location.href = url.toString();
+    });
+})();
+
+function selectSlot(slot) {
+    const select = document.getElementById('id_time_slot');
+    if (!select) return;
+    // Check if slot is fully booked
+    const card = document.getElementById('slot-' + slot);
+    if (card && card.classList.contains('fully-booked')) return;
+    // Set the dropdown value
+    select.value = slot;
+    // Highlight selected card
+    document.querySelectorAll('.slot-card').forEach(c => {
+        c.style.borderColor = '';
+        c.style.boxShadow = '';
+    });
+    if (card) {
+        card.style.borderColor = 'var(--primary)';
+        card.style.boxShadow = '0 0 0 3px rgba(124,58,237,.2)';
+    }
+    // Scroll to form
+    document.querySelector('.form-card').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+}
+
+// Highlight the currently selected slot on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const select = document.getElementById('id_time_slot');
+    if (select && select.value) {
+        const card = document.getElementById('slot-' + select.value);
+        if (card) {
+            card.style.borderColor = 'var(--primary)';
+            card.style.boxShadow = '0 0 0 3px rgba(124,58,237,.2)';
+        }
+    }
+});
 </script>
 {% endblock %}

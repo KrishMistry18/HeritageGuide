@@ -543,8 +543,15 @@
         const cityName = (card.dataset.cityName || '').trim().toLowerCase();
         let matchedCb = null;
         cityCheckboxes.forEach(cb => {
-            const lbl = cb.closest('li') ? cb.closest('li').querySelector('label') : null;
-            if (lbl && lbl.textContent.trim().toLowerCase() === cityName) matchedCb = cb;
+            // Label is the parent element containing the checkbox
+            const lbl = cb.parentElement;
+            if (lbl) {
+                // Get text content excluding the checkbox input text
+                const labelText = lbl.textContent.replace(/\s+/g, ' ').trim().toLowerCase();
+                if (labelText === cityName || labelText.includes(cityName)) {
+                    matchedCb = cb;
+                }
+            }
         });
         if (matchedCb && matchedCb.checked) card.classList.add('selected');
         card.addEventListener('click', () => {
