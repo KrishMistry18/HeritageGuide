@@ -1,162 +1,246 @@
-{% extends 'base.html' %}
+﻿{% extends "base.html" %}
 {% load static %}
 
+{% block title %}About Us -- HeritageGuide{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/about.css' %}">
+<style>
+/* Hero */
+.about-hero{position:relative;border-radius:24px;overflow:hidden;height:320px;margin-top:16px;display:flex;align-items:flex-end;}
+.about-hero-bg{position:absolute;inset:0;background:linear-gradient(135deg,#1e1b4b 0%,#5b21b6 50%,#7c3aed 100%);}
+.about-hero-pattern{position:absolute;inset:0;opacity:.08;background-image:radial-gradient(circle,#fff 1px,transparent 1px);background-size:32px 32px;}
+.about-hero-content{position:relative;z-index:1;padding:40px 48px;width:100%;}
+.about-hero-content h1{font-family:"Playfair Display",serif;font-size:clamp(2rem,4vw,3rem);font-weight:700;color:#fff;margin-bottom:10px;}
+.about-hero-content p{color:rgba(255,255,255,.8);font-size:1rem;max-width:560px;line-height:1.7;}
+.about-hero-badges{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.about-hero-badge{background:rgba(255,255,255,.15);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 16px;border-radius:50px;font-size:.8rem;font-weight:600;display:flex;align-items:center;gap:6px;}
+.about-hero-badge i{color:#fbbf24;}
+
+/* Stats */
+.about-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:32px 0;}
+.about-stat{background:#fff;border-radius:16px;padding:24px;text-align:center;box-shadow:0 4px 16px rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.08);}
+.about-stat .num{font-family:"Playfair Display",serif;font-size:2.2rem;font-weight:700;color:#7c3aed;display:block;line-height:1;}
+.about-stat .lbl{font-size:.8rem;color:#6b7280;font-weight:500;text-transform:uppercase;letter-spacing:.5px;margin-top:6px;display:block;}
+
+/* Mission */
+.about-section{margin:48px 0;}
+.about-section-label{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#7c3aed;margin-bottom:8px;}
+.about-section h2{font-family:"Playfair Display",serif;font-size:1.8rem;font-weight:700;color:#1e1b4b;margin-bottom:16px;}
+.about-section p{color:#4b5563;line-height:1.75;font-size:.95rem;}
+
+.mission-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px;}
+.mission-card{background:#fff;border-radius:16px;padding:28px;box-shadow:0 4px 16px rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.08);display:flex;gap:16px;}
+.mission-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#ede9fe,#ddd6fe);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.mission-icon i{font-size:1.2rem;color:#7c3aed;}
+.mission-card h3{font-family:"Playfair Display",serif;font-size:1rem;font-weight:700;color:#1e1b4b;margin-bottom:6px;}
+.mission-card p{font-size:.875rem;color:#6b7280;line-height:1.6;}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px;margin-top:24px;}
+.timeline::before{content:"";position:absolute;left:8px;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,#7c3aed,#a78bfa);}
+.timeline-item{position:relative;margin-bottom:28px;}
+.timeline-item::before{content:"";position:absolute;left:-28px;top:4px;width:12px;height:12px;border-radius:50%;background:#7c3aed;border:2px solid #fff;box-shadow:0 0 0 3px rgba(124,58,237,.2);}
+.timeline-item .tl-date{font-size:.75rem;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;}
+.timeline-item h4{font-weight:700;color:#1e1b4b;margin-bottom:4px;font-size:.95rem;}
+.timeline-item p{font-size:.875rem;color:#6b7280;line-height:1.6;}
+
+/* Team */
+.team-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-top:24px;}
+.team-card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 16px rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.08);text-align:center;transition:transform .25s,box-shadow .25s;}
+.team-card:hover{transform:translateY(-4px);box-shadow:0 10px 32px rgba(124,58,237,.18);}
+.team-avatar{width:100%;height:180px;object-fit:cover;display:block;}
+.team-avatar-placeholder{width:100%;height:180px;background:linear-gradient(135deg,#ede9fe,#c4b5fd);display:flex;align-items:center;justify-content:center;}
+.team-avatar-placeholder span{font-family:"Playfair Display",serif;font-size:2.5rem;font-weight:700;color:#7c3aed;}
+.team-card-body{padding:16px;}
+.team-card-body h3{font-family:"Playfair Display",serif;font-size:1rem;font-weight:700;color:#1e1b4b;margin-bottom:4px;}
+.team-card-body p{font-size:.8rem;color:#7c3aed;font-weight:600;}
+.team-card-body .team-desc{font-size:.78rem;color:#6b7280;margin-top:6px;line-height:1.5;}
+
+/* Features */
+.features-row{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-top:24px;}
+.feature-item{background:#fff;border-radius:16px;padding:24px;box-shadow:0 4px 16px rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.08);text-align:center;}
+.feature-item .fi-icon{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,#7c3aed,#5b21b6);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
+.feature-item .fi-icon i{font-size:1.4rem;color:#fff;}
+.feature-item h3{font-family:"Playfair Display",serif;font-size:1rem;font-weight:700;color:#1e1b4b;margin-bottom:8px;}
+.feature-item p{font-size:.85rem;color:#6b7280;line-height:1.6;}
+
+/* CTA */
+.about-cta{background:linear-gradient(135deg,#5b21b6,#7c3aed);border-radius:24px;padding:48px;text-align:center;margin:48px 0 0;box-shadow:0 16px 48px rgba(124,58,237,.3);}
+.about-cta h2{font-family:"Playfair Display",serif;font-size:1.8rem;font-weight:700;color:#fff;margin-bottom:10px;}
+.about-cta p{color:rgba(255,255,255,.8);margin-bottom:24px;}
+.about-cta .btn-white{background:#fff;color:#7c3aed;font-weight:700;padding:.8rem 2rem;border-radius:50px;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-size:.95rem;transition:all .2s;}
+.about-cta .btn-white:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.2);}
+
+@media(max-width:900px){.about-stats{grid-template-columns:repeat(2,1fr)}.team-grid{grid-template-columns:repeat(2,1fr)}.mission-grid{grid-template-columns:1fr}.features-row{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.about-stats{grid-template-columns:repeat(2,1fr)}.team-grid{grid-template-columns:repeat(2,1fr)}.features-row{grid-template-columns:1fr}.about-hero-content{padding:28px 24px}.about-hero{height:260px}}
+</style>
 {% endblock %}
 
 {% block content %}
-    <div class="about-img">
-        <h1 class="about-title"> Our Team</h1>
-    </div>
 
-    <div class="banner-container">
-        <div class="accent-bar">.</div>
-        <h1 class="main-heading">We're out here</h1>
-        <h2 class="subheading">Redefining the way you explore</h2>
-        <p class="description">
-          At HistoryGate, it is our motto to make more people aware about unheard/unseen monuments/museums which represent our history.
-        </p>
-        <a href="{% url 'contact' %}" class="contact-button">
-          <span class="button-text">Contact Us</span>
-        </a>
-    </div>
-
-    <section class="hero-section">
-      <div class="hero-content">
-            <h1 class="blue-title">2+ months of Project</h1>
-          <div class="blue-divider"></div>
-          <p class="hero-text">
-              Since Jan 2025, we have been working on a project with the idea 
-              to not only make a simple website but one which can educate a 
-              lot of people about our unknown history.
-          </p>
-          <p class="hero-text">
-              We have tried to implement ideas which can help us improve 
-              our knowledge of python along with frontend componenets like 
-              html and css.
-          </p>
-      </div>
-        <div class="hero-image"></div>
-  </section>
-
-  <div class="timeline-container">
-    <div class="year year-2022">JAN</div>
-    <div class="year year-2023">FEB</div>
-    <div class="year year-2024">MAR</div>
-
-    <div class="timeline-line">
-        <div class="nav-button prev-button">
-            <svg viewBox="0 0 24 24">
-                <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
-            </svg>
-        </div>
-
-        <div class="timeline-dot dot-2022"></div>
-        <div class="timeline-dot dot-2023"></div>
-        <div class="timeline-dot dot-2024"></div>
-
-        <div class="nav-button next-button">
-            <svg viewBox="0 0 24 24">
-                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
-            </svg>
-        </div>
-    </div>
-
-    <div class="timeline-content">
-        <div class="content-box">
-            <p>Idea creation and learning implementation</p>
-        </div>
-        <div class="content-box">
-            <p>Expanded into project creation wth html and css frontend being developed.</p>
-        </div>
-        <div class="content-box">
-            <p>Piecing everything together with django and using sqlite for database use</p>
-        </div>
+<!-- Hero -->
+<div class="about-hero">
+  <div class="about-hero-bg"></div>
+  <div class="about-hero-pattern"></div>
+  <div class="about-hero-content">
+    <h1>About HeritageGuide</h1>
+    <p>We are on a mission to make India's rich heritage accessible to everyone -- from iconic monuments to hidden gems across Mumbai, Chennai, Hyderabad and Gujarat.</p>
+    <div class="about-hero-badges">
+      <span class="about-hero-badge"><i class="fas fa-city"></i>4 Cities</span>
+      <span class="about-hero-badge"><i class="fas fa-landmark"></i>45+ Attractions</span>
+      <span class="about-hero-badge"><i class="fas fa-users"></i>Student Project</span>
+      <span class="about-hero-badge"><i class="fas fa-calendar"></i>Since Jan 2025</span>
     </div>
   </div>
+</div>
 
-  <div class="container">
-      <div class="header-divider"></div>
-      <h2 class="section-title">Why Choose Us?</h2>
-      
-      <div class="solutions-grid">
-          <div class="solution-card">
-              <div class="solution-image">
-                  <div class="solution-overlay">
-                      <h3 class="solution-title">Roamly-Ai Assitant</h3>
-                  </div>
-              </div>
-              <div class="solution-content">
-                  <p class="solution-text">Helps users learn more about monuments/museums with the help of a conversing ai bot</p>
-              </div>
-          </div>
+<!-- Stats -->
+<div class="about-stats">
+  <div class="about-stat"><span class="num">4</span><span class="lbl">Cities</span></div>
+  <div class="about-stat"><span class="num">45+</span><span class="lbl">Attractions</span></div>
+  <div class="about-stat"><span class="num">4</span><span class="lbl">Team Members</span></div>
+  <div class="about-stat"><span class="num">4+</span><span class="lbl">Months Built</span></div>
+</div>
 
-          <div class="solution-card">
-              <div class="solution-image">
-                  <div class="solution-overlay">
-                        <h3 class="solution-title">Sustainable & Smart Tourism 🌱</h3>
-                  </div>
-              </div>
-              <div class="solution-content">
-                  <p class="solution-text">Encourages off-peak hour bookings, reducing crowd congestion and 
-                        supports local tourism by showcasing underrated places.</p>
-              </div>
-          </div>
+<!-- Mission -->
+<div class="about-section">
+  <div class="about-section-label">Our Mission</div>
+  <h2>Redefining the Way You Explore India</h2>
+  <p>At HeritageGuide, our motto is to make more people aware of unheard and unseen monuments and museums that represent India's incredible history. We believe every heritage site has a story worth telling.</p>
 
-          <div class="solution-card">
-              <div class="solution-image">
-                  <div class="solution-overlay">
-                      <h3 class="solution-title">Personalized Itinerary Suggestions 🛍️</h3>
-                  </div>
-              </div>
-              <div class="solution-content">
-                  <p class="solution-text">Suggests locations based on choices made by user and provides information on historical and cultural significance of monuments</p>
-              </div>
-          </div>
+  <div class="mission-grid">
+    <div class="mission-card">
+      <div class="mission-icon"><i class="fas fa-eye"></i></div>
+      <div>
+        <h3>Discover Hidden Gems</h3>
+        <p>We spotlight lesser-known heritage sites alongside iconic landmarks, giving every monument the attention it deserves.</p>
       </div>
+    </div>
+    <div class="mission-card">
+      <div class="mission-icon"><i class="fas fa-calendar-check"></i></div>
+      <div>
+        <h3>Seamless Booking</h3>
+        <p>Book timed entry slots for monuments and museums in advance, reducing crowds and improving the visitor experience.</p>
+      </div>
+    </div>
+    <div class="mission-card">
+      <div class="mission-icon"><i class="fas fa-robot"></i></div>
+      <div>
+        <h3>AI-Powered Guidance</h3>
+        <p>Our Roamly AI chatbot answers questions about heritage sites, provides historical context, and helps plan your visit.</p>
+      </div>
+    </div>
+    <div class="mission-card">
+      <div class="mission-icon"><i class="fas fa-route"></i></div>
+      <div>
+        <h3>Smart Itineraries</h3>
+        <p>Pathfindr generates personalised multi-city travel plans based on your interests, budget, and available time.</p>
+      </div>
+    </div>
   </div>
-
-  <div class="team-section-header">
-    <h1 class="sections-title">Meet Our Passionate Team</h1>
-    <p class="team-description">The creative minds behind HistoryGate working to connect you with hidden historical treasures</p>
 </div>
 
-<div class="our-container">
-    <section class="team-container">
-        <div class="team-grid">
-            <div class="team-member">
-                <div class="member-img"></div>
-                <div class="member-info">
-                    <h3 class="member-name">Sahil Ojha</h3>
-                    <p class="member-role">Project Head & Backend Developer</p>
-                </div>
-            </div>
-            
-            <div class="team-member">
-                <div class="member-img"></div>
-                <div class="member-info">
-                    <h3 class="member-name">Atharva Nair</h3>
-                    <p class="member-role">Lead Frontend Developer</p>
-                </div>
-            </div>
-            
-            <div class="team-member">
-                <div class="member-img"></div>
-                <div class="member-info">
-                    <h3 class="member-name">Krish Mistry</h3>
-                    <p class="member-role">Backend & Frontend Developer</p>
-                </div>
-            </div>
-            
-            <div class="team-member">
-                <div class="member-img"></div>
-                <div class="member-info">
-                    <h3 class="member-name">Oom Murkar</h3>
-                    <p class="member-role">Backend & Database Developer</p>
-                </div>
-            </div>
-        </div>
-    </section>
+<!-- Timeline -->
+<div class="about-section">
+  <div class="about-section-label">Our Journey</div>
+  <h2>How HeritageGuide Was Built</h2>
+  <div class="timeline">
+    <div class="timeline-item">
+      <div class="tl-date">January 2025</div>
+      <h4>Idea & Research</h4>
+      <p>The concept was born -- a platform to make India's heritage accessible. We researched heritage sites, user needs, and the technology stack.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">February 2025</div>
+      <h4>Design & Frontend</h4>
+      <p>Built the frontend with HTML, CSS, and Django templates. Designed the UI with a focus on clean, modern aesthetics and mobile responsiveness.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">March 2025</div>
+      <h4>Backend & Database</h4>
+      <p>Integrated Django backend with SQLite, then migrated to Supabase PostgreSQL. Built the booking system, itinerary planner, and AI chatbot.</p>
+    </div>
+    <div class="timeline-item">
+      <div class="tl-date">May 2026</div>
+      <h4>Launch on Vercel</h4>
+      <p>Deployed HeritageGuide on Vercel with 45+ attractions across 4 cities, full slot booking, AI guidance, and a beautiful redesigned frontend.</p>
+    </div>
+  </div>
 </div>
+
+<!-- Features -->
+<div class="about-section">
+  <div class="about-section-label">Why Choose Us</div>
+  <h2>Everything You Need for Heritage Travel</h2>
+  <div class="features-row">
+    <div class="feature-item">
+      <div class="fi-icon"><i class="fas fa-robot"></i></div>
+      <h3>Roamly AI Assistant</h3>
+      <p>Powered by Claude AI, Roamly answers questions about monuments, provides historical insights, and helps plan your heritage journey.</p>
+    </div>
+    <div class="feature-item">
+      <div class="fi-icon"><i class="fas fa-leaf"></i></div>
+      <h3>Sustainable Tourism</h3>
+      <p>Encourages off-peak bookings to reduce crowd congestion and supports local tourism by showcasing underrated heritage places.</p>
+    </div>
+    <div class="feature-item">
+      <div class="fi-icon"><i class="fas fa-map-marked-alt"></i></div>
+      <h3>Personalised Itineraries</h3>
+      <p>Pathfindr suggests locations based on your interests and provides historical and cultural context for every monument on your route.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Team -->
+<div class="about-section">
+  <div class="about-section-label">Our Team</div>
+  <h2>Meet the Minds Behind HeritageGuide</h2>
+  <p>Four passionate students working together to connect people with India's incredible heritage.</p>
+  <div class="team-grid">
+    <div class="team-card">
+      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/sahil.jpg" alt="Sahil Ojha" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="team-avatar-placeholder" style="display:none"><span>SO</span></div>
+      <div class="team-card-body">
+        <h3>Sahil Ojha</h3>
+        <p>Project Head &amp; Backend Developer</p>
+        <p class="team-desc">Led the project vision and built the core Django backend architecture.</p>
+      </div>
+    </div>
+    <div class="team-card">
+      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/atharva.jpg" alt="Atharva Nair" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="team-avatar-placeholder" style="display:none"><span>AN</span></div>
+      <div class="team-card-body">
+        <h3>Atharva Nair</h3>
+        <p>Lead Frontend Developer</p>
+        <p class="team-desc">Designed and built the user interface, templates, and visual experience.</p>
+      </div>
+    </div>
+    <div class="team-card">
+      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/krish.jpg" alt="Krish Mistry" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="team-avatar-placeholder" style="display:none"><span>KM</span></div>
+      <div class="team-card-body">
+        <h3>Krish Mistry</h3>
+        <p>Backend &amp; Frontend Developer</p>
+        <p class="team-desc">Built the booking system, itinerary planner, and full-stack features.</p>
+      </div>
+    </div>
+    <div class="team-card">
+      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/oom.jpg" alt="Oom Murkar" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div class="team-avatar-placeholder" style="display:none"><span>OM</span></div>
+      <div class="team-card-body">
+        <h3>Oom Murkar</h3>
+        <p>Backend &amp; Database Developer</p>
+        <p class="team-desc">Managed the database design, Supabase integration, and data seeding.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="about-cta">
+  <h2>Ready to Explore India's Heritage?</h2>
+  <p>Join thousands of heritage explorers discovering India's most iconic sites.</p>
+  <a href="{% url 'monuments' %}" class="btn-white"><i class="fas fa-landmark"></i>Start Exploring</a>
+</div>
+
 {% endblock %}
