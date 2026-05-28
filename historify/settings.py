@@ -82,27 +82,37 @@ WSGI_APPLICATION = "historify.wsgi.application"
 
 # Firebase Initialization
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 firebase_cred_env = os.getenv('FIREBASE_CREDENTIALS')
 firebase_private_key = os.getenv('FIREBASE_PRIVATE_KEY')
+firebase_file_path = os.path.join(BASE_DIR, 'firebase_credentials.json')
 
-if firebase_cred_env:
-    cert_dict = json.loads(firebase_cred_env)
-    cred = credentials.Certificate(cert_dict)
-elif firebase_private_key:
-    cert_dict = {
-        "type": "service_account",
-        "project_id": os.getenv("FIREBASE_PROJECT_ID"),
-        "private_key": firebase_private_key.replace('\\n', '\n'),
-        "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
-        "token_uri": "https://oauth2.googleapis.com/token",
-    }
-    cred = credentials.Certificate(cert_dict)
-else:
-    cred = credentials.Certificate(os.path.join(BASE_DIR, 'firebase_credentials.json'))
+try:
+    if firebase_cred_env:
+        cert_dict = json.loads(firebase_cred_env)
+        cred = credentials.Certificate(cert_dict)
+    elif firebase_private_key:
+        cert_dict = {
+            "type": "service_account",
+            "project_id": os.getenv("FIREBASE_PROJECT_ID"),
+            "private_key": firebase_private_key.replace('\\n', '\n'),
+            "client_email": os.getenv("FIREBASE_CLIENT_EMAIL"),
+            "token_uri": "https://oauth2.googleapis.com/token",
+        }
+        cred = credentials.Certificate(cert_dict)
+    elif os.path.exists(firebase_file_path):
+        cred = credentials.Certificate(firebase_file_path)
+    else:
+        cred = None
+        print("WARNING: No Firebase credentials found. Firebase will not be initialized.")
 
-if not firebase_admin._apps:
-    firebase_admin.initialize_app(cred)
+    if cred and not firebase_admin._apps:
+        firebase_admin.initialize_app(cred)
+except Exception as e:
+    print(f"Failed to initialize Firebase: {e}")
 
 DATABASES = {}
 
