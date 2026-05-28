@@ -2,15 +2,9 @@ from django import forms
 from django.core.exceptions import ValidationError
 import datetime
 from django.utils import timezone
-from .models import SlotBooking, Booking, City
 from datetime import date
-from django.contrib.auth.models import User
-from .models import Profile
 
 def MinDateValidator(value):
-    """
-    Validator to ensure the date is not in the past
-    """
     today = timezone.now().date()
     if value < today:
         raise ValidationError("The date cannot be in the past.")
@@ -46,7 +40,7 @@ class ItineraryForm(forms.Form):
     )
     
     cities = forms.MultipleChoiceField(
-        choices=[],  # Will be populated in __init__
+        choices=[],  # Will be populated in view
         widget=forms.CheckboxSelectMultiple,
         required=True
     )
@@ -85,12 +79,6 @@ class ItineraryForm(forms.Form):
         })
     )
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Populate cities choices from database
-        cities = City.objects.all()
-        self.fields['cities'].choices = [(str(city.id), city.name) for city in cities]
-
     def clean(self):
         cleaned_data = super().clean()
         start_date = cleaned_data.get('start_date')
@@ -114,25 +102,15 @@ class ItineraryForm(forms.Form):
         
         return cleaned_data
 
-class SlotBookingForm(forms.ModelForm):
-    class Meta:
-        model = SlotBooking
-        fields = ['booking_date', 'booking_time', 'number_of_people']
-        widgets = {
-            'booking_date': forms.DateInput(attrs={'type': 'date'}),
-            'booking_time': forms.TimeInput(attrs={'type': 'time'}),
-            'number_of_people': forms.NumberInput(attrs={'min': 1, 'max': 10})
-        }
+class SlotBookingForm(forms.Form):
+    booking_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    booking_time = forms.TimeField(widget=forms.TimeInput(attrs={'type': 'time'}))
+    number_of_people = forms.IntegerField(widget=forms.NumberInput(attrs={'min': 1, 'max': 10}))
 
-class BookingForm(forms.ModelForm):
-    class Meta:
-        model = Booking
-        fields = ['date', 'time_slot', 'number_of_people']
-        widgets = {
-            'date': forms.DateInput(attrs={'type': 'date', 'min': date.today().isoformat()}),
-            'time_slot': forms.Select(attrs={'class': 'form-control'}),
-            'number_of_people': forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '10'}),
-        }
+class BookingForm(forms.Form):
+    date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'min': date.today().isoformat()}))
+    time_slot = forms.ChoiceField(choices=[('morning', 'Morning'), ('afternoon', 'Afternoon'), ('evening', 'Evening')], widget=forms.Select(attrs={'class': 'form-control'}))
+    number_of_people = forms.IntegerField(widget=forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '10'}))
 
     def clean_date(self):
         booking_date = self.cleaned_data.get('date')
@@ -148,17 +126,13 @@ class BookingForm(forms.ModelForm):
             raise forms.ValidationError("Maximum 10 people allowed per booking")
         return num_people
 
-class SignUpForm(forms.ModelForm):
+class SignUpForm(forms.Form):
     username = forms.CharField(max_length=150, required=True)
     email = forms.EmailField(required=True)
     password1 = forms.CharField(widget=forms.PasswordInput, required=True)
     password2 = forms.CharField(widget=forms.PasswordInput, required=True)
     birth_date = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}), required=True)
     phone_number = forms.CharField(max_length=15, required=True)
-
-    class Meta:
-        model = User
-        fields = ('username', 'email', 'password1', 'password2', 'birth_date', 'phone_number')
 
     def clean_password2(self):
         password1 = self.cleaned_data.get('password1')
@@ -167,66 +141,9 @@ class SignUpForm(forms.ModelForm):
             raise forms.ValidationError("Passwords don't match")
         return password2
 
-    def clean_email(self):
-        email = self.cleaned_data.get('email')
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError("Email already registered")
-        return email
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.set_password(self.cleaned_data["password1"])
-        if commit:
-            user.save()
-            # Create or update profile
-            profile = Profile.objects.create(
-                user=user,
-                birth_date=self.cleaned_data.get('birth_date'),
-                phone_number=self.cleaned_data.get('phone_number')
-            )
-        return user
-
-
-class ProfileUpdateForm(forms.ModelForm):
+class ProfileUpdateForm(forms.Form):
     first_name = forms.CharField(max_length=150, required=False)
     last_name = forms.CharField(max_length=150, required=False)
     email = forms.EmailField(required=True)
-
-    class Meta:
-        model = Profile
-        fields = ("phone_number", "birth_date")
-        widgets = {
-            "birth_date": forms.DateInput(attrs={"type": "date"}),
-            "phone_number": forms.TextInput(attrs={"placeholder": "+91XXXXXXXXXX"}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
-        super().__init__(*args, **kwargs)
-        if self.user:
-            self.fields["first_name"].initial = self.user.first_name
-            self.fields["last_name"].initial = self.user.last_name
-            self.fields["email"].initial = self.user.email
-
-    def clean_email(self):
-        email = self.cleaned_data["email"].strip().lower()
-        query = User.objects.filter(email__iexact=email)
-        if self.user:
-            query = query.exclude(id=self.user.id)
-        if query.exists():
-            raise forms.ValidationError("This email is already used by another account.")
-        return email
-
-    def save(self, commit=True):
-        profile = super().save(commit=False)
-        if self.user:
-            self.user.first_name = self.cleaned_data.get("first_name", "").strip()
-            self.user.last_name = self.cleaned_data.get("last_name", "").strip()
-            self.user.email = self.cleaned_data.get("email", "").strip().lower()
-            if commit:
-                self.user.save()
-        if commit:
-            profile.save()
-        return profile
-
-    
+    phone_number = forms.CharField(widget=forms.TextInput(attrs={"placeholder": "+91XXXXXXXXXX"}), required=False)
+    birth_date = forms.DateField(widget=forms.DateInput(attrs={"type": "date"}), required=False)

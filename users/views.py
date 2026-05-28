@@ -1,882 +1,523 @@
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.models import User 
-from django.contrib import messages
-from django.contrib.auth import logout, login, authenticate
-from django.views.generic import FormView, ListView, DetailView
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db import transaction
-from django.db.models import Sum
-from django.db.models import Q
-from .forms import ItineraryForm, SlotBookingForm, BookingForm, SignUpForm, ProfileUpdateForm
-from .models import City, Attraction, Itinerary, ItineraryDay, ItineraryActivity, SlotBooking, AttractionType, Booking, Profile
-import random
-import datetime
-from django.utils import timezone
-from collections import defaultdict
-
 import os
-import openai
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 import json
-from .models import ChatMessage
 import logging
-from anthropic import Anthropic
 import traceback
-from .supabase_client import get_supabase_anon_client
+import datetime
+import random
+from collections import defaultdict
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from django.http import JsonResponse, HttpResponseNotFound, FileResponse
+from django.views.decorators.csrf import csrf_exempt
+from anthropic import Anthropic
+from django.conf import settings
+from .forms import ItineraryForm, BookingForm, SignUpForm, ProfileUpdateForm
+from django.views.generic import FormView
+
+import firebase_admin
+from firebase_admin import firestore, auth as firebase_auth
 
 logger = logging.getLogger(__name__)
-
-# Configure Claude API — optional, chatbot disabled if key not set
 _anthropic_key = os.getenv('ANTHROPIC_API_KEY', '')
 anthropic_client = Anthropic(api_key=_anthropic_key) if _anthropic_key else None
 
+def get_db():
+    return firestore.client()
+
+def firebase_login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not getattr(request.user, 'is_authenticated', False):
+            messages.error(request, "Please log in to access this page.")
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+# --- Chatbot ---
 @csrf_exempt
 def get_response(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
             user_message = data.get('message', '').strip()
+            if not user_message: return JsonResponse({'error': 'Message cannot be empty'}, status=400)
+            # Local Keyword-Based AI Fallback using Firestore Database
+            db = get_db()
             
-            logger.debug(f"Received message: {user_message}")
-            logger.debug(f"API Key present: {bool(os.getenv('ANTHROPIC_API_KEY'))}")
-
-            if not user_message:
-                return JsonResponse({'error': 'Message cannot be empty'}, status=400)
-
-            if not anthropic_client:
-                return JsonResponse({'error': 'AI chatbot is not configured. Please add ANTHROPIC_API_KEY.'}, status=503)
-
-            try:
-                # Generate response using Claude
-                logger.debug("Attempting to create Claude message...")
-                response = anthropic_client.messages.create(
-                    model="claude-3-opus-20240229",
-                    max_tokens=150,
-                    messages=[
-                        {
-                            "role": "user", 
-                            "content": f"You are a helpful travel assistant. Respond to this message: {user_message}"
-                        }
-                    ]
-                )
-                logger.debug("Claude message created successfully")
-
-                bot_response = response.content[0].text.strip()
-                logger.debug(f"Bot response: {bot_response}")
-
-                return JsonResponse({
-                    'response': bot_response
-                })
-
-            except Exception as e:
-                logger.error(f"Claude API Error: {str(e)}")
-                logger.error(traceback.format_exc())
-                return JsonResponse({
-                    'error': f'Claude API Error: {str(e)}. Please try again later.'
-                }, status=500)
-
-        except json.JSONDecodeError:
-            logger.error("Invalid JSON received")
-            return JsonResponse({'error': 'Invalid request format'}, status=400)
-        
+            # Fetch cities
+            cities_ref = db.collection('cities').stream()
+            cities = {doc.id: doc.to_dict().get('name', '').lower() for doc in cities_ref}
+            
+            # Fetch attractions
+            attractions_ref = db.collection('attractions').stream()
+            attractions = []
+            for doc in attractions_ref:
+                a = doc.to_dict()
+                a['id'] = doc.id
+                a['city_name'] = cities.get(a.get('city_id'), '').lower()
+                attractions.append(a)
+                
+            user_msg_lower = user_message.lower()
+            
+            # 1. Greetings
+            if user_msg_lower in ['hi', 'hello', 'hey', 'greetings']:
+                return JsonResponse({'response': "Hello there! I'm Roamly. Which city are you planning to visit, or what kind of heritage sites are you looking for?"})
+                
+            # 2. Match Cities
+            mentioned_cities = [name for cid, name in cities.items() if name in user_msg_lower]
+            if mentioned_cities:
+                city = mentioned_cities[0]
+                city_attrs = [a for a in attractions if a['city_name'] == city]
+                if city_attrs:
+                    names = [a.get('name') for a in city_attrs[:4]]
+                    return JsonResponse({'response': f"If you're visiting {city.title()}, I highly recommend checking out: {', '.join(names)}. You can search for them or view them on our map to book a slot!"})
+                else:
+                    return JsonResponse({'response': f"I see you're interested in {city.title()}, but we don't have any specific attractions listed there yet. Try asking about Mumbai, Delhi, or Jaipur!"})
+                    
+            # 3. Match Specific Attractions
+            for a in attractions:
+                if a.get('name', '').lower() in user_msg_lower:
+                    return JsonResponse({'response': f"Ah, {a.get('name')}! It is a wonderful {a.get('type', 'place')}. It's located in {a['city_name'].title()}. You can book a slot to visit it directly through our platform!"})
+                    
+            # 4. Match Categories
+            if 'museum' in user_msg_lower:
+                museums = [a.get('name') for a in attractions if a.get('type') == 'museum'][:4]
+                if museums: return JsonResponse({'response': f"We have some great museums! You should check out {', '.join(museums)}."})
+            if 'monument' in user_msg_lower or 'fort' in user_msg_lower or 'palace' in user_msg_lower:
+                monuments = [a.get('name') for a in attractions if a.get('type') == 'monument'][:4]
+                if monuments: return JsonResponse({'response': f"If you love historical monuments, don't miss {', '.join(monuments)}!"})
+                
+            # 5. Fallback
+            return JsonResponse({'response': "I can help you find historical monuments, museums, and cultural events. Try asking me about a specific city like 'Mumbai', 'Delhi', or 'Agra'!"})
         except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            logger.error(traceback.format_exc())
-            return JsonResponse({'error': 'An unexpected error occurred'}, status=500)
-    
-    return JsonResponse({'error': 'Invalid request method'}, status=405)
+            return JsonResponse({'response': f"Sorry, I encountered an internal error. But as a travel bot, I'd say: Pack your bags and explore!"})
+    return JsonResponse({'error': 'Invalid request'}, status=405)
 
-class ItineraryCreateView(LoginRequiredMixin, FormView):
+def chatbot(request): return render(request, "chatbot.html")
+
+# --- Static Pages ---
+def home(request): return render(request, 'index.html')
+def index(request): return render(request, 'index.html')
+def info(request): return render(request, 'info.html')
+def about(request): return render(request, "about.html")
+def contact(request): return render(request, "contact.html")
+def search(request): return render(request, 'search.html')
+def map_view(request): return render(request, "map.html", {'google_maps_api_key': getattr(settings, 'GOOGLE_MAPS_API_KEY', '')})
+
+from django.contrib.auth.hashers import make_password, check_password
+
+# --- Auth ---
+@csrf_exempt
+def loginUser(request):
+    if request.method == "POST":
+        # Handle Firebase ID Token
+        id_token = request.POST.get('idToken')
+        email = request.POST.get('email')
+        
+        if id_token and email:
+            try:
+                firebase_auth.verify_id_token(id_token)
+                db = get_db()
+                user_doc = db.collection('users').document(email).get()
+                if user_doc.exists:
+                    user_data = user_doc.to_dict()
+                    request.session['user_email'] = email
+                    request.session['user_username'] = user_data.get('username', email.split('@')[0])
+                    request.session['user_first_name'] = user_data.get('first_name', '')
+                    request.session['user_last_name'] = user_data.get('last_name', '')
+                    return JsonResponse({"status": "success"})
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": str(e)}, status=401)
+                
+        # Traditional local login logic fallback (optional but good for testing)
+        loginusername = request.POST.get("loginusername", "").strip()
+        loginpassword = request.POST.get("loginpassword", "").strip()
+        if loginusername and loginpassword:
+            db = get_db()
+            user_doc = db.collection('users').document(loginusername).get()
+            if not user_doc.exists:
+                messages.error(request, "Invalid credentials.")
+                return redirect("login")
+            
+            user_data = user_doc.to_dict()
+            if check_password(loginpassword, user_data.get('password', '')):
+                request.session['user_email'] = loginusername
+                request.session['user_username'] = user_data.get('username', loginusername.split('@')[0])
+                messages.success(request, "Login successful!")
+                return redirect("home")
+            else:
+                messages.error(request, "Invalid credentials.")
+                return redirect("login")
+            
+    return render(request, "login2.html", {"google_configured": False})
+
+@csrf_exempt
+def signup(request):
+    if request.method == 'POST':
+        id_token = request.POST.get('idToken')
+        email = request.POST.get('email')
+        if id_token and email:
+            try:
+                firebase_auth.verify_id_token(id_token)
+                request.session['user_email'] = email
+                request.session['user_username'] = email.split('@')[0]
+                
+                # Save to Firestore users collection
+                db = get_db()
+                db.collection('users').document(email).set({
+                    'email': email,
+                    'username': email.split('@')[0]
+                })
+                return JsonResponse({"status": "success"})
+            except Exception as e:
+                return JsonResponse({"status": "error", "message": str(e)}, status=401)
+                
+        form = SignUpForm(request.POST)
+        if form.is_valid():
+            db = get_db()
+            email = form.cleaned_data['email']
+            db.collection('users').document(email).set({
+                'email': email,
+                'username': form.cleaned_data['username'],
+                'password': make_password(form.cleaned_data['password1']),
+                'phone_number': form.cleaned_data.get('phone_number', ''),
+                'birth_date': form.cleaned_data.get('birth_date', '').strftime('%Y-%m-%d') if form.cleaned_data.get('birth_date') else ''
+            })
+            messages.success(request, "Account created successfully. Please log in.")
+            return redirect("login")
+    else:
+        form = SignUpForm()
+    return render(request, 'signup3.html', {'form': form, 'google_configured': False})
+
+def logoutUser(request):
+    request.session.flush()
+    messages.success(request, "You logged out successfully")
+    return redirect("home")
+
+# --- Account ---
+@firebase_login_required
+def account_view(request):
+    db = get_db()
+    email = request.user.email
+    import datetime
+    user_doc = db.collection('users').document(email).get().to_dict() or {}
+    
+    if user_doc.get('birth_date'):
+        try:
+            user_doc['birth_date_obj'] = datetime.datetime.strptime(user_doc['birth_date'], '%Y-%m-%d').date()
+        except ValueError:
+            user_doc['birth_date_obj'] = None
+            
+    initial_data = {
+        'first_name': user_doc.get('first_name', ''),
+        'last_name': user_doc.get('last_name', ''),
+        'email': email,
+        'phone_number': user_doc.get('phone_number', ''),
+        'birth_date': user_doc.get('birth_date', '')
+    }
+    profile_form = ProfileUpdateForm(initial=initial_data)
+    
+    # Recent bookings
+    bookings = []
+    for b in db.collection('bookings').where('user_email', '==', email).limit(5).stream():
+        b_dict = b.to_dict()
+        attr_doc = db.collection('attractions').document(b_dict['attraction_id']).get()
+        b_dict['attraction'] = attr_doc.to_dict() if attr_doc.exists else {'name': 'Unknown'}
+        b_dict['id'] = b.id
+        bookings.append(b_dict)
+        
+    itineraries = []
+    for i in db.collection('itineraries').where('user_email', '==', email).limit(5).stream():
+        i_dict = i.to_dict()
+        i_dict['id'] = i.id
+        itineraries.append(i_dict)
+        
+    return render(request, 'account.html', {
+        'user': request.user,
+        'profile': user_doc,
+        'profile_form': profile_form,
+        'recent_bookings': bookings,
+        'recent_itineraries': itineraries
+    })
+
+@firebase_login_required
+def update_profile(request):
+    if request.method == 'POST':
+        db = get_db()
+        email = request.user.email
+        form = ProfileUpdateForm(request.POST)
+        if form.is_valid():
+            db.collection('users').document(email).update({
+                'first_name': form.cleaned_data.get('first_name', ''),
+                'last_name': form.cleaned_data.get('last_name', ''),
+                'phone_number': form.cleaned_data.get('phone_number', ''),
+                'birth_date': form.cleaned_data.get('birth_date', '').strftime('%Y-%m-%d') if form.cleaned_data.get('birth_date') else ''
+            })
+            request.session['user_first_name'] = form.cleaned_data.get('first_name', '')
+            request.session['user_last_name'] = form.cleaned_data.get('last_name', '')
+            messages.success(request, "Profile updated successfully!")
+        else:
+            messages.error(request, "Failed to update profile. Please check your inputs.")
+    return redirect("account")
+
+# --- Attractions ---
+def _attractions_view(request, attr_type, title):
+    city_name = request.GET.get('city', '').strip()
+    db = get_db()
+    
+    query = db.collection('attractions').where('type', '==', attr_type)
+    attractions = [doc.to_dict() for doc in query.stream()]
+    for doc, a in zip(query.stream(), attractions):
+        a['id'] = doc.id
+        
+    cities = [{'id': doc.id, **doc.to_dict()} for doc in db.collection('cities').stream()]
+    
+    if city_name:
+        city_id = next((c['id'] for c in cities if c['name'].lower() == city_name.lower()), None)
+        if city_id:
+            attractions = [a for a in attractions if a.get('city_id') == city_id]
+            
+    for a in attractions:
+        c = next((c for c in cities if c['id'] == a.get('city_id')), None)
+        a['city'] = c
+
+    return render(request, "attractions/list.html", {
+        "attractions": attractions, "title": title,
+        "cities": cities, "active_city": city_name,
+    })
+
+def monuments_view(request): return _attractions_view(request, "monument", "Monuments")
+def museums_view(request): return _attractions_view(request, "museum", "Museums")
+def events_view(request): return _attractions_view(request, "event", "Events")
+
+def attraction_detail(request, type, id):
+    db = get_db()
+    doc = db.collection('attractions').document(str(id)).get()
+    if not doc.exists:
+        messages.error(request, "Attraction not found.")
+        return redirect('home')
+    
+    attraction = doc.to_dict()
+    attraction['id'] = doc.id
+    
+    city_doc = db.collection('cities').document(attraction.get('city_id', '')).get()
+    attraction['city'] = city_doc.to_dict() if city_doc.exists else None
+    
+    # Get related
+    related = []
+    if attraction.get('city_id'):
+        for d in db.collection('attractions').where('city_id', '==', attraction['city_id']).limit(4).stream():
+            if d.id != str(id):
+                r = d.to_dict()
+                r['id'] = d.id
+                related.append(r)
+                
+    return render(request, "attractions/detail.html", {
+        "attraction": attraction,
+        "related_attractions": related,
+    })
+
+@firebase_login_required
+def book_slot(request, attraction_id):
+    db = get_db()
+    doc = db.collection('attractions').document(str(attraction_id)).get()
+    if not doc.exists:
+        messages.error(request, "Attraction not found.")
+        return redirect('home')
+        
+    attraction = doc.to_dict()
+    attraction['id'] = doc.id
+    
+
+    
+    # Fetch city
+    if 'city_id' in attraction:
+        city_doc = db.collection('cities').document(attraction['city_id']).get()
+        attraction['city'] = city_doc.to_dict() if city_doc.exists else None
+
+    selected_date_str = request.GET.get("date", datetime.datetime.now().strftime('%Y-%m-%d'))
+    try:
+        selected_date_obj = datetime.datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+    except ValueError:
+        selected_date_obj = datetime.datetime.now().date()
+        selected_date_str = selected_date_obj.strftime('%Y-%m-%d')
+        
+    # Convert opening and closing times to time objects if they exist
+    for time_key in ['opening_time', 'closing_time']:
+        if attraction.get(time_key) and isinstance(attraction[time_key], str):
+            try:
+                attraction[time_key] = datetime.datetime.strptime(attraction[time_key], '%H:%M:%S').time()
+            except ValueError:
+                pass
+
+    # Fetch bookings for this attraction to filter in memory (avoids Firestore composite index error)
+    bookings = [b.to_dict() for b in db.collection('bookings').where('attraction_id', '==', str(attraction_id)).stream()]
+
+    def get_avail(ts):
+        booked = 0
+        for b in bookings:
+            if b.get('date') == selected_date_str and b.get('time_slot') == ts:
+                booked += b.get('number_of_people', 0)
+        return {'available': max(0, 50 - booked), 'booked': booked, 'total_capacity': 50}
+
+    availabilities = {
+        "morning": get_avail("morning"),
+        "afternoon": get_avail("afternoon"),
+        "evening": get_avail("evening"),
+    }
+    
+    if request.method == "POST":
+        date = request.POST.get('date')
+        time_slot = request.POST.get('time_slot')
+        number_of_people = int(request.POST.get('number_of_people', 1))
+        
+        avail = get_avail(time_slot)
+        if number_of_people > avail['available']:
+            messages.error(request, f"Sorry, only {avail['available']} slots are available.")
+            return redirect(f"{request.path}?date={date}")
+            
+        b_ref = db.collection('bookings').document()
+        b_ref.set({
+            'user_email': request.user.email,
+            'attraction_id': str(attraction_id),
+            'date': date,
+            'time_slot': time_slot,
+            'number_of_people': number_of_people,
+            'status': 'confirmed'
+        })
+        messages.success(request, "Your booking is confirmed.")
+        return redirect("booking_confirmation", booking_id=b_ref.id)
+        
+    form = BookingForm()
+    return render(request, 'booking/book_slot.html', {
+        'form': form, 'attraction': attraction, 'availabilities': availabilities, 
+        "selected_date": selected_date_obj, "selected_date_str": selected_date_str
+    })
+
+@firebase_login_required
+def booking_confirmation(request, booking_id):
+    db = get_db()
+    b_doc = db.collection('bookings').document(str(booking_id)).get()
+    if not b_doc.exists:
+        messages.error(request, "Booking not found.")
+        return redirect('home')
+        
+    booking = b_doc.to_dict()
+    booking['id'] = b_doc.id
+    
+    attr_doc = db.collection('attractions').document(booking.get('attraction_id', '')).get()
+    if attr_doc.exists:
+        attraction = attr_doc.to_dict()
+        attraction['id'] = attr_doc.id
+        if 'city_id' in attraction:
+            city_doc = db.collection('cities').document(attraction['city_id']).get()
+            attraction['city'] = city_doc.to_dict() if city_doc.exists else None
+        booking['attraction'] = attraction
+    else:
+        booking['attraction'] = {'name': 'Unknown', 'id': 0, 'type': 'monument'}
+        
+    if 'date' in booking and isinstance(booking['date'], str):
+        try:
+            booking['date'] = datetime.datetime.strptime(booking['date'], '%Y-%m-%d').date()
+        except ValueError:
+            pass
+            
+    class MockBooking:
+        def __init__(self, d):
+            for k,v in d.items(): setattr(self, k, v)
+    
+    return render(request, 'booking/booking_confirmation.html', {'booking': MockBooking(booking)})
+
+# --- API ---
+def search_suggestions(request):
+    query = request.GET.get('q', '').strip().lower()
+    if not query: return JsonResponse([], safe=False)
+    db = get_db()
+    sugs = []
+    for d in db.collection('attractions').stream():
+        a = d.to_dict()
+        if query in a.get('name', '').lower():
+            sugs.append({'id': d.id, 'name': a.get('name'), 'type': a.get('type')})
+    return JsonResponse(sorted(sugs, key=lambda x: x['name'])[:8], safe=False)
+
+def all_names(request):
+    db = get_db()
+    sugs = [{'id': d.id, 'name': d.to_dict().get('name'), 'type': d.to_dict().get('type')} for d in db.collection('attractions').stream()]
+    return JsonResponse(sorted(sugs, key=lambda x: x['name']), safe=False)
+
+# --- Itineraries ---
+class ItineraryCreateView(FormView):
     template_name = 'itinerary/create_itinerary.html'
     form_class = ItineraryForm
     
-    interest_descriptions = {
-        'culture': "Historical sites, museums, local traditions, and cultural experiences",
-        'adventure': "Thrilling activities, outdoor sports, and exciting experiences",
-        'relaxation': "Peaceful activities, wellness centers, and stress-free environments",
-        'food': "Local cuisine, food tours, cooking classes, and culinary experiences",
-        'nature': "Parks, gardens, wildlife, and outdoor natural attractions",
-        'shopping': "Markets, malls, boutiques, and shopping districts",
-        'entertainment': "Shows, concerts, nightlife, and entertainment venues"
-    }
-
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Get all cities from the database
-        context['cities'] = City.objects.all()
-        
-        # Add interest choices based on the interest_descriptions
-        context['interest_choices'] = [
-            (key, value.split(',')[0]) for key, value in self.interest_descriptions.items()
+        ctx = super().get_context_data(**kwargs)
+        db = get_db()
+        class MockCity:
+            def __init__(self, id, name): self.id = id; self.name = name
+        ctx['cities'] = [MockCity(d.id, d.to_dict().get('name')) for d in db.collection('cities').stream()]
+        ctx['interest_choices'] = [
+            ('culture', 'Culture & History'),
+            ('adventure', 'Adventure'),
+            ('relaxation', 'Relaxation'),
+            ('food', 'Food & Cuisine'),
+            ('nature', 'Nature & Wildlife'),
+            ('shopping', 'Shopping'),
+            ('entertainment', 'Entertainment')
         ]
-        
-        # Add transportation choices
-        context['transportation_choices'] = [
-            ('car', 'Rental Car'),
-            ('public', 'Public Transportation'),
-            ('tour', 'Guided Tours'),
-            ('walk', 'Walking'),
-            ('bike', 'Biking'),
-            ('mixed', 'Mixed')
-        ]
-        
-        return context
-
-    def get_attractions_by_interest(self, city, interests):
-        """Get city attractions using robust interest keyword matching."""
-        interest_map = {
-            "culture": ["culture", "history", "heritage", "art", "architecture"],
-            "adventure": ["adventure", "trek", "hike", "outdoor"],
-            "relaxation": ["relaxation", "wellness", "spa", "calm"],
-            "food": ["food", "cuisine", "restaurant", "street food"],
-            "nature": ["nature", "park", "wildlife", "garden", "beach"],
-            "shopping": ["shopping", "market", "mall", "bazaar"],
-            "entertainment": ["entertainment", "show", "event", "music", "nightlife"],
-        }
-        query = Q()
-        for interest in interests:
-            for keyword in interest_map.get(interest, [interest]):
-                query |= Q(interest_tags__icontains=keyword) | Q(type__icontains=keyword)
-
-        matched = Attraction.objects.filter(city=city).filter(query).order_by("-rating")
-        if not matched.exists():
-            matched = Attraction.objects.filter(city=city).order_by("-rating")
-        return list(matched)
+        ctx['transportation_choices'] = [('car', 'Rental Car'), ('public', 'Public Transportation'), ('tour', 'Guided Tours'), ('walk', 'Walking')]
+        return ctx
 
     def form_valid(self, form):
-        try:
-            selected_city_ids = [int(city_id) for city_id in form.cleaned_data["cities"]]
-            city_map = {city.id: city for city in City.objects.filter(id__in=selected_city_ids)}
-            cities = [city_map[city_id] for city_id in selected_city_ids if city_id in city_map]
-            if not cities:
-                messages.error(self.request, "No valid cities selected.")
-                return self.form_invalid(form)
-            
-            # Create the itinerary
-            itinerary = Itinerary.objects.create(
-                user=self.request.user,
-                name=form.cleaned_data['name'],
-                start_date=form.cleaned_data['start_date'],
-                end_date=form.cleaned_data['end_date'],
-                transportation_type=form.cleaned_data['transportation_type'],
-                total_budget=form.cleaned_data['total_budget'],
-                interests=','.join(form.cleaned_data['interests'])
-            )
-            
-            itinerary.cities.set(cities)
-            
-            # Calculate number of days for the trip
-            total_days = (form.cleaned_data['end_date'] - form.cleaned_data['start_date']).days + 1
-            
-            # Distribute days among cities
-            days_per_city = total_days // len(cities)
-            remaining_days = total_days % len(cities)
-            
-            current_date = form.cleaned_data['start_date']
-            for i, city in enumerate(cities):
-                city_days = days_per_city + (1 if i < remaining_days else 0)
-                all_city_attractions = self.get_attractions_by_interest(city, form.cleaned_data["interests"])
-                used_attraction_ids = set()
-
-                for day_idx in range(city_days):
-                    itinerary_day = ItineraryDay.objects.create(
-                        itinerary=itinerary,
-                        city=city,
-                        date=current_date,
-                        notes=f"Explore cultural highlights and local experiences in {city.name}."
-                    )
-                    fresh_attractions = [a for a in all_city_attractions if a.id not in used_attraction_ids]
-                    day_attractions = fresh_attractions[:3]
-                    if len(day_attractions) < 3:
-                        fallback = [a for a in all_city_attractions if a.id not in {d.id for d in day_attractions}]
-                        day_attractions.extend(fallback[: 3 - len(day_attractions)])
-
-                    if not day_attractions:
-                        ItineraryActivity.objects.create(
-                            day=itinerary_day,
-                            custom_activity=f"Self-guided cultural walk in {city.name}",
-                            start_time=datetime.time(10, 0),
-                            end_time=datetime.time(12, 0),
-                            notes="Explore local neighborhoods, cafes, and heritage streets.",
-                            order=0,
-                        )
-                        current_date += datetime.timedelta(days=1)
-                        continue
-
-                    for idx, attraction in enumerate(day_attractions):
-                        used_attraction_ids.add(attraction.id)
-                        start_hour = 9 + (idx * 3)
-                        if start_hour > 17:
-                            continue
-                        start_time = datetime.time(start_hour, 0)
-                        end_time = datetime.time(min(start_hour + 2, 18), 0)
-                        activity_notes = f"Visit {attraction.name} - {attraction.get_type_display()}. "
-                        if attraction.rating:
-                            activity_notes += f"Rated {attraction.rating}/5. "
-                        if attraction.info:
-                            activity_notes += attraction.info
-                        ItineraryActivity.objects.create(
-                            day=itinerary_day,
-                            attraction=attraction,
-                            start_time=start_time,
-                            end_time=end_time,
-                            notes=activity_notes,
-                            order=idx
-                        )
-                    current_date += datetime.timedelta(days=1)
-            return redirect('itinerary_detail', itinerary_id=itinerary.id)
-        except Exception as e:
-            print(f"Error creating itinerary: {str(e)}")
-            messages.error(self.request, "Failed to create itinerary. Please try again.")
-            return self.form_invalid(form)
-
-def itinerary_preview(request):
-    # Get the itinerary ID from session
-    itinerary_id = request.session.get('itinerary_id')
-    
-    if not itinerary_id:
-        messages.error(request, "No itinerary found. Please create a new one.")
-        return redirect('create_itinerary')
-    
-    # Get the itinerary object with all related data
-    itinerary = get_object_or_404(Itinerary, id=itinerary_id)
-    
-    # Group days by city for better presentation
-    days_by_city = defaultdict(list)
-    
-    for day in itinerary.days.all().order_by('date'):
-        # Try to determine which city this day belongs to
-        day_activities = day.activities.all()
+        if getattr(self.request.user, 'is_authenticated', False) == False:
+            messages.error(self.request, "Log in first.")
+            return redirect('login')
         
-        if day_activities.exists() and day_activities.first().attraction:
-            city = day_activities.first().attraction.city
-        else:
-            # If no attraction or custom activity, use the first city
-            city = itinerary.cities.first()
-        
-        days_by_city[city].append({
-            'day_obj': day,
-            'date': day.date,
-            'activities': day.activities.all().order_by('order', 'start_time')
+        db = get_db()
+        i_ref = db.collection('itineraries').document()
+        i_ref.set({
+            'user_email': self.request.user.email,
+            'name': form.cleaned_data['name'],
+            'start_date': form.cleaned_data['start_date'].strftime('%Y-%m-%d'),
+            'end_date': form.cleaned_data['end_date'].strftime('%Y-%m-%d'),
+            'transportation_type': form.cleaned_data['transportation_type'],
+            'total_budget': float(form.cleaned_data['total_budget']) if form.cleaned_data['total_budget'] else 0.0,
+            'interests': form.cleaned_data['interests'],
+            'created_at': datetime.datetime.now().isoformat()
         })
+        return redirect('itinerary_detail', itinerary_id=i_ref.id)
+
+def itinerary_preview(request): return redirect('home')
+
+@firebase_login_required
+def itinerary_detail(request, itinerary_id):
+    db = get_db()
+    i_doc = db.collection('itineraries').document(str(itinerary_id)).get()
+    if not i_doc.exists: return redirect('home')
     
-    # Convert interests string to list
-    interests = [interest.strip() for interest in itinerary.interests.split(',') if interest.strip()]
+    itin = i_doc.to_dict()
+    class MockItin:
+        def __init__(self, d):
+            for k,v in d.items(): setattr(self, k, v)
     
-    context = {
-        'itinerary': itinerary,
-        'days_by_city': dict(days_by_city),
-        'interests': interests
-    }
-    
-    return render(request, 'itinerary/itinerary_detail.html', context)
-
-# Create your views here.
-def home(request):
-    return render(request, 'index.html')
-
-# # Keep other existing view functions...
-
-# def create_itinerary(request):
-#     # Create a new form instance
-#     form = ItineraryForm()
-    
-#     # Get all destinations from the database
-#     destinations = Destination.objects.all()
-    
-#     # Define interest choices
-#     interest_choices = [
-#         ('culture', 'Culture & History'),
-#         ('adventure', 'Adventure'),
-#         ('relaxation', 'Relaxation'),
-#         ('food', 'Food & Cuisine'),
-#         ('nature', 'Nature & Wildlife')
-#     ]
-    
-#     # Define transportation choices
-#     transportation_choices = [
-#         ('car', 'Rental Car'),
-#         ('public', 'Public Transportation'),
-#         ('tour', 'Guided Tours'),
-#         ('walk', 'Walking'),
-#         ('bike', 'Biking'),
-#         ('mixed', 'Mixed')
-#     ]
-    
-#     # Check if destinations exist, if not create some sample ones
-#     if not destinations.exists():
-#         sample_destinations = [
-#             "Paris", "Tokyo", "New York", "Rome", "Barcelona", 
-#             "Sydney", "London", "Dubai", "Bangkok", "Istanbul"
-#         ]
-#         for dest_name in sample_destinations:
-#             Destination.objects.create(name=dest_name)
-#         destinations = Destination.objects.all()
-    
-#     context = {
-#         'form': form,
-#         'destinations': destinations,
-#         'interest_choices': interest_choices,
-#         'transportation_choices': transportation_choices
-#     }
-    
-#     return render(request, "itinerary/create_itinerary.html", context)
-
-# def itinerary_detail(request, itinerary_id=None):
-#     if itinerary_id:
-#         # Get the specific itinerary
-#         itinerary = get_object_or_404(Itinerary, id=itinerary_id)
-#     else:
-#         # Get the itinerary ID from session
-#         itinerary_id = request.session.get('itinerary_id')
-#         if not itinerary_id:
-#             messages.error(request, "No itinerary found. Please create a new one.")
-#             return redirect('create_itinerary')
-#         itinerary = get_object_or_404(Itinerary, id=itinerary_id)
-    
-#     # Group days by city for better presentation
-#     days_by_city = defaultdict(list)
-    
-#     for day in itinerary.days.all().order_by('date'):
-#         # Try to determine which city this day belongs to
-#         day_activities = day.activities.all()
-        
-#         if day_activities.exists() and day_activities.first().attraction:
-#             city = day_activities.first().attraction.city
-#         else:
-#             # If no attraction or custom activity, use the first city
-#             city = itinerary.cities.first()
-        
-#         days_by_city[city].append({
-#             'day_obj': day,
-#             'date': day.date,
-#             'activities': day.activities.all().order_by('order', 'start_time')
-#         })
-    
-#     # Convert interests string to list
-#     interests = [interest.strip() for interest in itinerary.interests.split(',') if interest.strip()]
-    
-#     context = {
-#         'itinerary': itinerary,
-#         'days_by_city': dict(days_by_city),
-#         'interests': interests
-#     }
-    
-#     return render(request, "itinerary/itinerary_detail.html", context)
-
-
-def _unique_username_from_email(email: str) -> str:
-    base = (email.split("@")[0] or "traveler").replace(" ", "").lower()
-    candidate = base
-    suffix = 1
-    while User.objects.filter(username=candidate).exists():
-        candidate = f"{base}{suffix}"
-        suffix += 1
-    return candidate
-
-
-def _supabase_signup(email: str, password: str):
-    client = get_supabase_anon_client()
-    if not client:
-        return None, "Supabase is not configured. Contact admin."
-    try:
-        response = client.auth.sign_up(
-            {
-                "email": email,
-                "password": password,
-            }
-        )
-        return response, None
-    except Exception as exc:
-        return None, str(exc)
-
-
-def _supabase_signin(email: str, password: str):
-    client = get_supabase_anon_client()
-    if not client:
-        return None, "Supabase is not configured. Contact admin."
-    try:
-        response = client.auth.sign_in_with_password(
-            {
-                "email": email,
-                "password": password,
-            }
-        )
-        return response, None
-    except Exception as exc:
-        return None, str(exc)
-
-
-def loginUser(request):
-    if request.method == "POST":
-        loginusername = request.POST.get("loginusername", "").strip()
-        loginpassword = request.POST.get("loginpassword", "").strip()
-        if not loginusername or not loginpassword:
-            messages.error(request, "Please enter both username/email and password.")
-            return redirect("login")
-
-        user = authenticate(request, username=loginusername, password=loginpassword)
-        if user is None and "@" in loginusername:
-            linked_user = User.objects.filter(email__iexact=loginusername).first()
-            if linked_user:
-                user = authenticate(request, username=linked_user.username, password=loginpassword)
-
-        if user is not None:
-            login(request, user)
-            messages.success(request, "Login successful!")
-            return redirect("home")
-
-        # If local auth fails, try Supabase and sync local account.
-        if "@" in loginusername:
-            supa_session, supa_error = _supabase_signin(loginusername, loginpassword)
-            if supa_session and getattr(supa_session, "user", None):
-                local_user = User.objects.filter(email__iexact=loginusername).first()
-                if not local_user:
-                    local_user = User.objects.create_user(
-                        username=_unique_username_from_email(loginusername),
-                        email=loginusername.lower(),
-                        password=loginpassword,
-                    )
-                    Profile.objects.get_or_create(user=local_user)
-                else:
-                    local_user.set_password(loginpassword)
-                    local_user.save(update_fields=["password"])
-                login(request, local_user)
-                messages.success(request, "Login successful!")
-                return redirect("home")
-            if supa_error:
-                logger.error("Supabase signin failed: %s", supa_error)
-
-        messages.error(request, "Invalid username/email or password.")
-        return redirect("login")
-    google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
-    return render(request, "login2.html", {"google_configured": google_configured})
-def search(request):
-    return render(request,'search.html')
-
-  
-def signup(request):
-    if request.method == 'POST':
-        form = SignUpForm(request.POST)
-        if form.is_valid():
-            try:
-                with transaction.atomic():
-                    user = form.save()
-                    supa_response, supa_error = _supabase_signup(
-                        user.email,
-                        form.cleaned_data["password1"],
-                    )
-                    if supa_error:
-                        logger.error("Supabase signup failed for %s: %s", user.email, supa_error)
-                        # Don't show Supabase errors to users — account still works locally
-                    else:
-                        pass  # Supabase sync succeeded
-                    messages.success(request, "Account created successfully. Please log in.")
-                return redirect("login")
-            except Exception as e:
-                messages.error(request, f'An error occurred during signup: {str(e)}')
-                google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
-                return render(request, 'signup3.html', {'form': form, 'google_configured': google_configured})
-        else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f'{field}: {error}')
-    else:
-        form = SignUpForm()
-    google_configured = bool(os.getenv("GOOGLE_CLIENT_ID", "").strip())
-    return render(request, 'signup3.html', {'form': form, 'google_configured': google_configured})
-
-def logoutUser(request):
-    if request.method == "POST":
-        logout(request)
-        messages.success(request, "You logged out successfully")
-        return redirect("home")
-    return redirect("account")
-
-from django.shortcuts import render
-
-def index(request):
-    return render(request, 'index.html')
-
-def info(request):
-    return render(request, 'info.html')
-
-@login_required
-def account_view(request):
-    profile, _ = Profile.objects.get_or_create(user=request.user)
-    form = ProfileUpdateForm(instance=profile, user=request.user)
-    context = {
-        'user': request.user,
-        'profile': profile,
-        'profile_form': form,
-        'recent_bookings': Booking.objects.filter(user=request.user).select_related("attraction")[:5],
-        'recent_itineraries': Itinerary.objects.filter(user=request.user).order_by("-created_at")[:5],
-    }
-    return render(request, 'account.html', context)
-
-def map_view(request):
-    from django.conf import settings
-    return render(request, "map.html", {
-        'google_maps_api_key': settings.GOOGLE_MAPS_API_KEY
+    return render(request, 'itinerary/itinerary_detail.html', {
+        'itinerary': MockItin(itin),
+        'days_by_city': {},
+        'total_activities': 0,
+        'cities_count': 1,
     })
 
-def create_itinerary(request):
-    form = ItineraryForm()
-    return render(request, "itinerary/create_itinerary.html", {'form': form})
-
-@login_required
-def itinerary_detail(request, itinerary_id):
-    # Get the specific itinerary
-    itinerary = get_object_or_404(Itinerary, id=itinerary_id, user=request.user)
-    
-    # Get all days for this itinerary, ordered by date
-    days = ItineraryDay.objects.filter(itinerary=itinerary).order_by('date')
-    
-    # For each day, prefetch related activities and their attractions to optimize queries
-    days = days.prefetch_related(
-        'activities',
-        'activities__attraction'
-    )
-    
-    # Calculate some useful statistics
-    total_activities = sum(day.activities.count() for day in days)
-    cities_count = itinerary.cities.count()
-    
-    # Group days by city for better organization
-    days_by_city = defaultdict(list)
-    for day in days:
-        city = day.city or itinerary.cities.first()
-        
-        days_by_city[city].append(day)
-    
-    context = {
-        'itinerary': itinerary,
-        'days': days,
-        'days_by_city': dict(days_by_city),
-        'total_activities': total_activities,
-        'cities_count': cities_count,
-    }
-    
-    return render(request, 'itinerary/itinerary_detail.html', context)
-
-def chatbot(request):
-    return render(request, "chatbot.html")
-
-def about(request):
-    return render(request, "about.html")
-
-def contact(request):
-    return render(request, "contact.html")
-
-from django.shortcuts import render
-from .models import Museum, Monuments, Events
-
-
-def search_suggestions(request):
-    query = request.GET.get('q', '').strip()
-    
-    if not query:
-        return JsonResponse([], safe=False)
-    
-    try:
-        # Search in the Attraction model
-        attractions = Attraction.objects.filter(name__icontains=query).values('id', 'name', 'type')[:8]
-        
-        # Format the results
-        suggestions = []
-        
-        for attraction in attractions:
-            suggestions.append({
-                'id': attraction['id'],
-                'name': attraction['name'],
-                'type': attraction['type']
-            })
-        
-        # Sort alphabetically
-        suggestions.sort(key=lambda x: x['name'])
-        
-        return JsonResponse(suggestions, safe=False)
-        
-    except Exception as e:
-        logger.error(f"Error in search_suggestions: {str(e)}")
-        return JsonResponse([], safe=False)
-
-def attraction_detail(request, type, id):
-    try:
-        attraction = Attraction.objects.get(id=id, type=type)
-        related_attractions = Attraction.objects.filter(city=attraction.city).exclude(id=attraction.id)[:4]
-        return render(
-            request,
-            "attractions/detail.html",
-            {
-                "attraction": attraction,
-                "related_attractions": related_attractions,
-            },
-        )
-    except Attraction.DoesNotExist:
-        messages.error(request, "Attraction not found.")
-        return redirect('home')
-
-def all_names(request):
-    """API endpoint that returns all attraction names."""
-    all_items = list(
-        Attraction.objects.values("id", "name", "type").order_by("name")
-    )
-    return JsonResponse(all_items, safe=False)
-
-def info1(request):
-    return redirect("home")
-
-def info2(request):
-    return redirect("home")
-
-def info3(request):
-    return redirect("home")
-
-def info4(request):
-    return redirect("home")
-
-def info5(request):
-    return redirect("home")
-
-def info6(request):
-    return redirect("home")
-
-def info7(request):
-    return redirect("home")
-
-def info8(request):
-    # Get the Mumbai city object
-    city = get_object_or_404(City, name="Mumbai")
-    
-    # Get or create the Bandra Fort attraction
-    attraction, created = Attraction.objects.get_or_create(
-        id=8,
-        defaults={
-            'name': 'Bandra Fort',
-            'city': city,
-            'type': AttractionType.MONUMENT,
-            'info': 'Bandra Fort, also known as Castella de Aguada, is a historic fort located in Bandra, Mumbai. Built by the Portuguese in 1640, it offers stunning views of the Bandra-Worli Sea Link and the Arabian Sea.',
-            'address': 'Bandra West, Mumbai, Maharashtra 400050',
-            'opening_time': datetime.time(9, 0),  # 9:00 AM
-            'closing_time': datetime.time(17, 30),  # 5:30 PM
-            'duration_minutes': 180,
-            'rating': 4.5,
-            'interest_tags': 'culture,history,architecture'
-        }
-    )
-    
-    return redirect("attraction_detail", type=attraction.type, id=attraction.id)
-
-def info9(request):
-    return redirect("home")
-
-def info10(request):
-    return redirect("home")
-
-def info11(request):
-    return redirect("home")
-
-def info12(request):
-    return redirect("home")
-
-def info13(request):
-    return redirect("home")
-
-# def info14(request):
-#     return render(request, "newinfo/info14.html")
-
-def info15(request):
-    return redirect("home")
-
-def info16(request):
-    return redirect("home")
-
-# In your views.py
-from django.http import FileResponse, HttpResponseNotFound
-from django.conf import settings
-import os
+# Info redirects
+for i in range(1, 17):
+    exec(f"def info{i}(request): return redirect('home')")
 
 def view_file(request):
     file_path = request.GET.get('path')
-    
-    # Security check to prevent directory traversal
-    if '..' in file_path:
-        return HttpResponseNotFound()
-    
-    # Construct the absolute path
+    if '..' in file_path: return HttpResponseNotFound()
     absolute_path = os.path.join(settings.STATIC_ROOT, file_path)
-    
     if os.path.exists(absolute_path) and os.path.isfile(absolute_path):
         return FileResponse(open(absolute_path, 'rb'))
-    else:
-        return HttpResponseNotFound()
+    return HttpResponseNotFound()
 
-@login_required
-def book_slot(request, attraction_id):
-    try:
-        attraction = Attraction.objects.get(id=attraction_id)
-    except Attraction.DoesNotExist:
-        messages.error(request, "Sorry, this attraction is not available for booking.")
-        return redirect('home')
-    
-    selected_date = request.GET.get("date")
-    if request.method == "POST":
-        form = BookingForm(request.POST)
-        if form.is_valid():
-            date = form.cleaned_data['date']
-            time_slot = form.cleaned_data['time_slot']
-            number_of_people = form.cleaned_data['number_of_people']
-            try:
-                with transaction.atomic():
-                    current_booked = (
-                        Booking.objects.select_for_update()
-                        .filter(
-                            attraction=attraction,
-                            date=date,
-                            time_slot=time_slot,
-                            status="confirmed",
-                        )
-                        .aggregate(total=Sum("number_of_people"))["total"]
-                        or 0
-                    )
-                    remaining = max(0, 50 - current_booked)
-                    if number_of_people > remaining:
-                        messages.error(
-                            request,
-                            f"Sorry, only {remaining} slots are available for the selected time slot.",
-                        )
-                        return redirect(f"{request.path}?date={date}")
-
-                    booking = form.save(commit=False)
-                    booking.user = request.user
-                    booking.attraction = attraction
-                    booking.status = "confirmed"
-                    booking.save()
-
-                updated_availability = Booking.get_slot_availability(attraction, date, time_slot)
-                messages.success(
-                    request,
-                    f"Your booking is confirmed. {updated_availability['available']} slots remain in this time slot.",
-                )
-                return redirect("booking_confirmation", booking_id=booking.id)
-                
-            except Exception as e:
-                messages.error(request, f"An error occurred while creating your booking: {str(e)}")
-                return redirect('book_slot', attraction_id=attraction_id)
-    else:
-        form = BookingForm()
-        selected_date = request.GET.get("date")
-
-    if not selected_date:
-        selected_date = timezone.now().date()
-    availabilities = {
-        "morning": Booking.get_slot_availability(attraction, selected_date, "morning"),
-        "afternoon": Booking.get_slot_availability(attraction, selected_date, "afternoon"),
-        "evening": Booking.get_slot_availability(attraction, selected_date, "evening"),
-    }
-    
-    return render(request, 'booking/book_slot.html', {
-        'form': form,
-        'attraction': attraction,
-        'availabilities': availabilities,
-        "selected_date": selected_date,
-    })
-
-@login_required
-def booking_confirmation(request, booking_id):
-    try:
-        # Get the booking with related attraction data
-        booking = get_object_or_404(
-            Booking.objects.select_related('attraction', 'user'),
-            id=booking_id,
-            user=request.user
-        )
-        
-        return render(request, 'booking/booking_confirmation.html', {
-            'booking': booking
-        })
-        
-    except Exception as e:
-        messages.error(request, f"An error occurred while retrieving your booking: {str(e)}")
-        return redirect('home')
-
-def monuments_view(request):
-    city_name = request.GET.get('city', '').strip()
-    attractions = Attraction.objects.filter(type=AttractionType.MONUMENT).select_related("city")
-    if city_name:
-        attractions = attractions.filter(city__name__iexact=city_name)
-    cities = City.objects.all()
-    return render(request, "attractions/list.html", {
-        "attractions": attractions, "title": "Monuments",
-        "cities": cities, "active_city": city_name,
-    })
-
-def museums_view(request):
-    city_name = request.GET.get('city', '').strip()
-    attractions = Attraction.objects.filter(type=AttractionType.MUSEUM).select_related("city")
-    if city_name:
-        attractions = attractions.filter(city__name__iexact=city_name)
-    cities = City.objects.all()
-    return render(request, "attractions/list.html", {
-        "attractions": attractions, "title": "Museums",
-        "cities": cities, "active_city": city_name,
-    })
-
-def events_view(request):
-    city_name = request.GET.get('city', '').strip()
-    attractions = Attraction.objects.filter(type=AttractionType.EVENT).select_related("city")
-    if city_name:
-        attractions = attractions.filter(city__name__iexact=city_name)
-    cities = City.objects.all()
-    return render(request, "attractions/list.html", {
-        "attractions": attractions, "title": "Events",
-        "cities": cities, "active_city": city_name,
-    })
-
-@login_required
+@firebase_login_required
 def products_view(request):
-    # For now, we'll use a placeholder list of products
-    # In a real application, you would have a Product model
-    products = [
-        {
-            'id': 1,
-            'name': 'Museum Guide Book',
-            'price': 19.99,
-            'description': 'Comprehensive guide to the museum\'s collections',
-            'image': 'products/guidebook.jpg'
-        },
-        {
-            'id': 2,
-            'name': 'Historical Replica',
-            'price': 49.99,
-            'description': 'Handcrafted replica of a famous artifact',
-            'image': 'products/replica.jpg'
-        },
-        # Add more products as needed
-    ]
-    return render(request, 'products.html', {'products': products})
-
-@login_required
-def book_slot_view(request, attraction_id):
-    # This view will handle the booking process
-    # You'll need to implement the actual booking logic
-    return render(request, 'book_slot.html', {'attraction_id': attraction_id})
-
-@login_required
-def update_profile(request):
-    if request.method == 'POST':
-        profile, _ = Profile.objects.get_or_create(user=request.user)
-        form = ProfileUpdateForm(request.POST, instance=profile, user=request.user)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Profile updated successfully!")
-        else:
-            for errors in form.errors.values():
-                for error in errors:
-                    messages.error(request, error)
-        return redirect("account")
-    
-    return redirect('account')
+    return render(request, 'products.html', {'products': []})

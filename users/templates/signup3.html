@@ -1,12 +1,12 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static %}
-{% load socialaccount %}
+{% load static %}
 
 {% block title %}Create Account - HeritageGuide{% endblock %}
 
 {% block extra_css %}
 <style>
-.signup-wrap{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 96px);border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(124,58,237,.15);margin:16px 0;}
+.signup-wrap{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 96px);border-radius:20px;overflow:hidden;box-shadow:0 8px 40px rgba(99,107,47,.15);margin:16px 0;}
 .signup-photo{position:relative;overflow:hidden;}
 .signup-photo img{width:100%;height:100%;object-fit:cover;display:block;}
 .signup-photo-overlay{position:absolute;inset:0;background:linear-gradient(160deg,rgba(10,5,40,.75) 0%,rgba(91,33,182,.45) 100%);}
@@ -21,23 +21,23 @@
 .signup-form-box h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:#1e1b4b;margin-bottom:4px;}
 .signup-form-box .subtitle{font-size:.875rem;color:#6b7280;margin-bottom:22px;}
 .btn-google{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:11px;border:1.5px solid #e5e7eb;border-radius:10px;background:#fff;color:#1e1b4b;font-size:.875rem;font-weight:600;text-decoration:none;transition:all .2s;box-shadow:0 1px 4px rgba(0,0,0,.06);}
-.btn-google:hover{border-color:#7c3aed;box-shadow:0 2px 12px rgba(124,58,237,.15);transform:translateY(-1px);}
+.btn-google:hover{border-color:var(--primary);box-shadow:0 2px 12px rgba(99,107,47,.15);transform:translateY(-1px);}
 .divider{display:flex;align-items:center;gap:12px;margin:16px 0;color:#9ca3af;font-size:.78rem;font-weight:500;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e5e7eb;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .form-group{margin-bottom:12px;}
 .form-group label{display:block;font-size:.78rem;font-weight:600;color:#374151;margin-bottom:5px;}
 .form-group input{width:100%;padding:10px 13px;border:1.5px solid #e5e7eb;border-radius:9px;font-size:.875rem;font-family:'Inter',sans-serif;color:#1e1b4b;background:#fff;transition:border-color .2s,box-shadow .2s;outline:none;}
-.form-group input:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12);}
+.form-group input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,107,47,.12);}
 .password-wrap{position:relative;}
 .password-wrap input{padding-right:40px;}
 .toggle-pw{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#9ca3af;font-size:.85rem;padding:3px;}
-.toggle-pw:hover{color:#7c3aed;}
+.toggle-pw:hover{color:var(--primary);}
 .error-msg{color:#ef4444;font-size:.75rem;margin-top:4px;}
-.btn-submit{width:100%;padding:12px;background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;margin-top:6px;box-shadow:0 4px 14px rgba(124,58,237,.35);}
-.btn-submit:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.45);}
+.btn-submit{width:100%;padding:12px;background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;font-family:'Inter',sans-serif;margin-top:6px;box-shadow:0 4px 14px rgba(99,107,47,.35);}
+.btn-submit:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(99,107,47,.45);}
 .auth-footer{text-align:center;margin-top:16px;font-size:.85rem;color:#6b7280;}
-.auth-footer a{color:#7c3aed;font-weight:600;text-decoration:none;}
+.auth-footer a{color:var(--primary);font-weight:600;text-decoration:none;}
 .auth-footer a:hover{text-decoration:underline;}
 .alert{padding:10px 13px;border-radius:9px;font-size:.82rem;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
 .alert-error{background:#fee2e2;color:#991b1b;border:1px solid #fca5a5;}
@@ -80,13 +80,7 @@
         {% endfor %}
       {% endif %}
 
-      {% if google_configured %}
-      <a href="{% provider_login_url 'google' %}?next=/" class="btn-google">
-        <svg width="16" height="16" viewBox="0 0 18 18"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 7.29C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-        Continue with Google
-      </a>
-      <div class="divider">or sign up with email</div>
-      {% endif %}
+
 
       <form method="post" novalidate>
         {% csrf_token %}

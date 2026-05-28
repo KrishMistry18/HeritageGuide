@@ -11,27 +11,27 @@
     {% block extra_css %}{% endblock %}
     <style>
         :root {
-            --primary: #7c3aed;
-            --primary-light: #a78bfa;
-            --primary-dark: #5b21b6;
-            --accent: #f59e0b;
-            --accent-dark: #d97706;
-            --bg: #f5f3ff;
-            --bg2: #ede9fe;
+            --primary: #636B2F;
+            --primary-light: #BAC095;
+            --primary-dark: #3D4127;
+            --accent: #D4DE95;
+            --accent-dark: #BAC095;
+            --bg: #F8F9F3; /* Ultra light for readability */
+            --bg2: #D4DE95;
             --surface: #ffffff;
-            --text: #1e1b4b;
-            --text-muted: #6b7280;
-            --border: #e5e7eb;
-            --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
-            --shadow: 0 4px 16px rgba(124,58,237,.12);
-            --shadow-lg: 0 10px 40px rgba(124,58,237,.18);
+            --text: #3D4127;
+            --text-muted: #636B2F;
+            --border: #BAC095;
+            --shadow-sm: 0 1px 3px rgba(61,65,39,.08), 0 1px 2px rgba(61,65,39,.06);
+            --shadow: 0 4px 16px rgba(61,65,39,.12);
+            --shadow-lg: 0 10px 40px rgba(61,65,39,.18);
             --radius: 16px;
             --radius-sm: 10px;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 50%, #e0e7ff 100%);
+            background: linear-gradient(135deg, #F8F9F3 0%, #D4DE95 50%, #BAC095 100%);
             color: var(--text);
             min-height: 100vh;
             overflow-x: hidden;
@@ -42,7 +42,7 @@
             justify-content: space-between;
             align-items: center;
             padding: 0 28px;
-            background: rgba(30,27,75,.92);
+            background: rgba(61, 65, 39, 0.95);
             backdrop-filter: blur(16px);
             box-shadow: 0 4px 24px rgba(0,0,0,.25);
             border-radius: 50px;
@@ -83,7 +83,7 @@
         }
         .btn-nav-login:hover { color: #fff; background: rgba(255,255,255,.1); }
         .btn-nav-signup {
-            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: #fff;
             text-decoration: none;
             padding: .55rem 1.4rem;
@@ -93,24 +93,24 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            box-shadow: 0 2px 12px rgba(124,58,237,.4);
+            box-shadow: 0 2px 12px rgba(99,107,47,.4);
             transition: all .2s;
         }
-        .btn-nav-signup:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(124,58,237,.5); }
+        .btn-nav-signup:hover { transform: translateY(-1px); box-shadow: 0 4px 20px rgba(99,107,47,.5); }
         .dropdown { position: relative; }
         .account-btn {
             width: 40px; height: 40px; border-radius: 50%;
-            background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             border: 2px solid rgba(255,255,255,.2);
             color: #fff; font-size: 1rem; cursor: pointer;
             display: flex; align-items: center; justify-content: center;
             transition: all .2s;
         }
-        .account-btn:hover { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(124,58,237,.3); }
+        .account-btn:hover { transform: scale(1.05); box-shadow: 0 0 0 4px rgba(99,107,47,.3); }
         .dropdown-menu {
             display: none; position: absolute; right: 0; top: calc(100% + 10px);
             background: #fff; min-width: 200px; border-radius: 10px;
-            box-shadow: 0 10px 40px rgba(124,58,237,.18);
+            box-shadow: 0 10px 40px rgba(99,107,47,.18);
             border: 1px solid #e5e7eb; overflow: hidden; z-index: 200;
         }
         .dropdown:hover .dropdown-menu { display: block; }
@@ -125,7 +125,7 @@
             font-size: .875rem; font-weight: 500; transition: background .15s;
         }
         .dropdown-item:hover { background: #f5f3ff; }
-        .dropdown-item i { width: 16px; color: #7c3aed; font-size: .8rem; }
+        .dropdown-item i { width: 16px; color: var(--primary); font-size: .8rem; }
         .dropdown-divider { border: none; border-top: 1px solid #e5e7eb; margin: 4px 0; }
         .dropdown-logout {
             width: 100%; text-align: left; border: none; background: transparent;
@@ -142,15 +142,15 @@
             transition: all .2s ease; letter-spacing: .3px; font-family: 'Inter', sans-serif;
         }
         .btn-primary {
-            background: linear-gradient(135deg, #7c3aed, #5b21b6); color: #fff;
-            box-shadow: 0 4px 14px rgba(124,58,237,.35);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff;
+            box-shadow: 0 4px 14px rgba(99,107,47,.35);
         }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(124,58,237,.45); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(99,107,47,.45); }
         .btn-secondary {
             background: #fff; color: #1e1b4b;
             border: 1.5px solid #e5e7eb;
         }
-        .btn-secondary:hover { background: #f5f3ff; border-color: #a78bfa; color: #7c3aed; }
+        .btn-secondary:hover { background: #f5f3ff; border-color: var(--primary-light); color: var(--primary); }
         .btn-accent {
             background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff;
             box-shadow: 0 4px 14px rgba(245,158,11,.3);
@@ -161,7 +161,7 @@
             padding: 4px 12px; border-radius: 50px; font-size: .75rem;
             font-weight: 600; letter-spacing: .5px; text-transform: uppercase;
         }
-        .badge-primary { background: #ede9fe; color: #7c3aed; }
+        .badge-primary { background: #ede9fe; color: var(--primary); }
         .badge-accent  { background: #fef3c7; color: #d97706; }
         .badge-green   { background: #d1fae5; color: #065f46; }
         .badge-red     { background: #fee2e2; color: #991b1b; }
@@ -178,7 +178,7 @@
             background: rgba(30,27,75,.95); color: rgba(255,255,255,.6);
             text-align: center; padding: 24px; font-size: .85rem; margin-top: 48px;
         }
-        .site-footer a { color: #a78bfa; text-decoration: none; }
+        .site-footer a { color: var(--primary-light); text-decoration: none; }
         @media (max-width: 768px) {
             .nav-items { display: none; }
             .nav-container { padding: 0 20px; }

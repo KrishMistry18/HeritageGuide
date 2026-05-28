@@ -1,6 +1,6 @@
-﻿# HeritageGuide 🏛️🗺️
+# HeritageGuide 🏛️🗺️
 
-Discover cities like a local. HistoryGate is a Django-powered travel companion that blends an elegant map UI, curated attractions, itinerary planning, and simple slot booking — all with a privacy‑friendly, keyless default map.
+Discover cities like a local. HeritageGuide (formerly HistoryGate) is a Django-powered travel companion that blends an elegant map UI, curated attractions, itinerary planning, and simple slot booking — all backed by a real-time **Firebase** backend.
 
 <br>🔗 Live Demo: https://heritage-guide.vercel.app/
 
@@ -8,29 +8,29 @@ Discover cities like a local. HistoryGate is a Django-powered travel companion t
 - 🗺️ **Interactive Map**: Works out of the box using Leaflet + OpenStreetMap (no API key needed). If you add a Google API key, the page upgrades to Place Search + Drawing.
 - 🧭 **Smart Directions**: Get driving/walking/cycling/transit routes with a single click (Leaflet Routing Machine via OSRM).
 - 🏷️ **Points of Interest**: Curated markers for historic sites, museums, and monuments with quick actions.
-- 🗓️ **Itineraries**: Create multi-day plans with activities and attractions (clean `City → Attraction → Day → Activity` model).
-- 🎟️ **Slot Booking**: Reserve slots for attractions with availability checks.
-- 💬 **Chat Assistant**: Optional AI-powered helper for travel queries.
+- 🗓️ **Itineraries**: Create multi-day plans with activities and attractions using Firebase Firestore.
+- 🎟️ **Slot Booking**: Reserve slots for attractions with availability checks right from the database.
+- 💬 **Chat Assistant**: Roamly, the local keyword-driven AI helper that queries the Firestore database to provide highly accurate travel recommendations.
+- 🎨 **Earthy Theme**: A beautiful, immersive Sage/Olive color palette designed to inspire travel.
 
 ## 🚀 Quick Start
 
 1) Clone the repo
 ```bash
-git clone https://github.com/<your-username>/-HistoryGate-App.git
-cd -HistoryGate-App
+git clone https://github.com/KrishMistry18/HeritageGuide.git
+cd HeritageGuide
 ```
 
 2) Create a virtual environment and install dependencies
 ```bash
 python -m venv .venv
 .venv\Scripts\activate  # Windows
+# source .venv/bin/activate # Mac/Linux
 pip install -r requirements.txt
 ```
 
-3) Run database migrations
-```bash
-python manage.py migrate
-```
+3) Set up Firebase Credentials
+You must place your `firebase_credentials.json` file in the project root to connect to the Firestore database.
 
 4) Start the server
 ```bash
@@ -39,72 +39,28 @@ python manage.py runserver
 
 Open `http://127.0.0.1:8000/` and explore!
 
-Tip: Create a superuser to access the admin dashboard.
-```bash
-python manage.py createsuperuser
-```
-
-## 🔑 Optional: Google Maps API
-The map page is fully functional without any keys (Leaflet + OSM). If you prefer Google Maps for Place Search and Drawing tools, set an API key:
-
-1) Get a key from the Google Cloud Console and enable the Maps JavaScript API
-2) Create a `.env` file in the project root using the template below
-
-```env
-GOOGLE_MAPS_API_KEY=your_api_key_here
-GOOGLE_CLIENT_ID=your_google_oauth_client_id
-GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
-OPENAI_API_KEY=your_openai_key_if_used
-DEBUG=True
-SECRET_KEY=your_django_secret
-```
-
-We’ve included `env_example.txt` as a reference. The app will fall back to Leaflet if Google Maps fails to load.
-
 ## 🧱 Tech Stack
-- Django 5
-- django-allauth (Google OAuth)
+- Django 5 (Backend Framework)
+- Firebase / Firestore (NoSQL Database)
+- Firebase Auth (Authentication)
 - Leaflet + Leaflet Routing Machine (OSRM)
 - Optional Google Maps JS API (Places, Drawing)
-- SQLite (dev), easily swappable
 
 ## 🧹 Project Structure
-- `users/` app with templates, views, URLs, and management commands for sample data
-- `users/templates/map.html` includes a graceful Leaflet fallback (no key required)
-- `users/management/commands/` includes helpers to populate cities and attractions
+- `users/` app with templates, views, and URLs.
+- `users/templates/` contains all the HTML templates styled with the new travel theme.
+- `firebase_credentials.json` authenticates the backend with the Firebase project.
 
 ## 🛡️ Security & GitHub Hygiene
-- `.gitignore` excludes secrets (`.env`), local DB (`db.sqlite3`), and media uploads
-- Sensitive OAuth client files have been removed; use your own credentials locally
-
-## 🖼️ Screenshots
-Add screenshots or a short GIF demo here!
-```
-docs/
- ├─ screenshot-home.png
- ├─ screenshot-map.png
- └─ itinerary-flow.gif
-```
-
-## 🧩 Notable Features
-- **Leaflet Fallback**: If Google Maps is unavailable or the key is missing, the app auto-loads a Leaflet map with search and routing
-- **Itinerary Data Model**: Clean `City`, `Attraction`, `Itinerary`, and `ItineraryDay` models designed for extensibility
-- **Booking Engine**: Enforces one booking per user per slot and tracks availability
-
-## 📝 Scripts & Data
-Populate sample data using the management commands:
-```bash
-python manage.py populate_cities
-python manage.py populate_attractions
-```
+- `.gitignore` excludes secrets (`.env`), Firebase credentials (`firebase_credentials.json`), and virtual environments.
 
 ## ❓ FAQ
 - **Q: Do I need a Google API key to see the map?**
   - No. The app uses Leaflet + OpenStreetMap by default. A Google key only unlocks Place Search + Drawing on top.
-- **Q: Can I use Postgres or MySQL?**
-  - Yes, update `DATABASES` in `historify/settings.py`.
-- **Q: How do I add my own cities/attractions?**
-  - Use the admin panel or copy the management commands as a template.
+- **Q: Does this use SQLite or Postgres?**
+  - No, HeritageGuide uses Firebase Firestore for all data storage. Ensure you have your Firebase Service Account JSON file set up!
+- **Q: How does the Chatbot work?**
+  - Roamly queries the live Firebase database to find attractions based on the cities or categories you mention.
 
 ## 🤝 Contributing
 PRs and suggestions are welcome! If you find a bug or have an idea, open an issue.
@@ -113,14 +69,10 @@ PRs and suggestions are welcome! If you find a bug or have an idea, open an issu
 
 ## 📞 **Contact**
 
-- Project: <https://github.com/KrishMistry18/EduCycle>
+- Project: <https://github.com/KrishMistry18/HeritageGuide>
 - Email: <mistrykrish2005@gmail.com>
 - LinkedIn: <https://www.linkedin.com/in/krishmistry18>
 
 ---
 
-**Built with ❤️ by Krish Mistry** 
-
-
-
-
+**Built with ❤️ by Krish Mistry**

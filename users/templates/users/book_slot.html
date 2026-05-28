@@ -21,9 +21,9 @@
                     {% if attraction %}
                     <div class="attraction-details mb-4">
                         <h4>{{ attraction.name }}</h4>
-                        <p class="text-muted">{{ attraction.get_type_display }} in {{ attraction.city.name }}</p>
+                        <p class="text-muted">{{ attraction.type|title }} in {{ attraction.city.name }}</p>
                         {% if attraction.image %}
-                            <img src="{{ attraction.image.url }}" alt="{{ attraction.name }}" class="img-fluid rounded mb-3" style="max-height: 200px; object-fit: cover;">
+                            <img src="{{ attraction.image }}" alt="{{ attraction.name }}" class="img-fluid rounded mb-3" style="max-height: 200px; object-fit: cover;">
                         {% endif %}
                         <div class="row">
                             <div class="col-md-6">

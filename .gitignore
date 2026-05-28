@@ -18,6 +18,7 @@ build/
 venv/
 env/
 ENV/
+firebase_credentials.json
 
 # ── Django ───────────────────────────────────────────────────
 db.sqlite3

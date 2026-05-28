@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django.urls import path
 from . import views
-from django.contrib.auth.views import LogoutView
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -17,7 +16,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('itinerary/create/', views.ItineraryCreateView.as_view(), name='itinerary_create'),
     path('itinerary/preview/', views.itinerary_preview, name='itinerary_preview'),
-    path('itinerary/detail/<int:itinerary_id>/', views.itinerary_detail, name='itinerary_detail'),
+    path('itinerary/detail/<str:itinerary_id>/', views.itinerary_detail, name='itinerary_detail'),
     path('chatbot/', views.chatbot, name='chatbot'),
     path('chatbot/get-response/', views.get_response, name='get_response'),
     path('api/search-suggestions/', views.search_suggestions, name='search_suggestions'),
@@ -44,6 +43,6 @@ urlpatterns = [
     path('events/', views.events_view, name='events'),
     path('products/', views.products_view, name='products'),
     path('book-slot/<int:attraction_id>/', views.book_slot, name='book_slot'),
-    path('booking-confirmation/<int:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
+    path('booking-confirmation/<str:booking_id>/', views.booking_confirmation, name='booking_confirmation'),
     path('update-profile/', views.update_profile, name='update_profile'),
 ]
