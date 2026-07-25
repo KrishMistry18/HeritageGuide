@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 {% load static %}
 
 {% block title %}About Us -- HeritageGuide{% endblock %}
@@ -198,7 +198,7 @@
   <p>Four passionate students working together to connect people with India's incredible heritage.</p>
   <div class="team-grid">
     <div class="team-card">
-      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/sahil.jpg" alt="Sahil Ojha" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="{% static 'img/sahil.jpg' %}" alt="Sahil Ojha" class="team-avatar" style="object-position: center 15%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="team-avatar-placeholder" style="display:none"><span>SO</span></div>
       <div class="team-card-body">
         <h3>Sahil Ojha</h3>
@@ -207,7 +207,7 @@
       </div>
     </div>
     <div class="team-card">
-      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/atharva.jpg" alt="Atharva Nair" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="{% static 'img/atharva.jpg' %}" alt="Atharva Nair" class="team-avatar" style="object-position: center 20%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="team-avatar-placeholder" style="display:none"><span>AN</span></div>
       <div class="team-card-body">
         <h3>Atharva Nair</h3>
@@ -216,7 +216,7 @@
       </div>
     </div>
     <div class="team-card">
-      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/krish.jpg" alt="Krish Mistry" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="{% static 'img/krish.png' %}" alt="Krish Mistry" class="team-avatar" style="object-position: center;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="team-avatar-placeholder" style="display:none"><span>KM</span></div>
       <div class="team-card-body">
         <h3>Krish Mistry</h3>
@@ -225,7 +225,7 @@
       </div>
     </div>
     <div class="team-card">
-      <img src="https://raw.githubusercontent.com/KrishMistry18/HeritageGuide/main/static/img/oom.jpg" alt="Oom Murkar" class="team-avatar" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <img src="{% static 'img/oom.jpg' %}" alt="Oom Murkar" class="team-avatar" style="object-position: center 5%;" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
       <div class="team-avatar-placeholder" style="display:none"><span>OM</span></div>
       <div class="team-card-body">
         <h3>Oom Murkar</h3>

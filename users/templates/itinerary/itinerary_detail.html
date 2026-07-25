@@ -340,7 +340,7 @@
     <div class="itinerary-stats">
         <div class="stat-card">
             <i class="fas fa-city"></i>
-            <div class="stat-value">{{ itinerary.cities.count }}</div>
+            <div class="stat-value">{{ itinerary.cities|length }}</div>
             <div class="stat-label">Cities</div>
         </div>
         <div class="stat-card">
@@ -357,7 +357,7 @@
 
     <!-- Cities -->
     <div class="cities-row">
-        {% for city in itinerary.cities.all %}
+        {% for city in itinerary.cities %}
             <div class="city-chip">
                 <i class="fas fa-map-marker-alt"></i>{{ city.name }}
             </div>
@@ -382,7 +382,7 @@
                 {% endif %}
 
                 <div class="activity-list">
-                    {% for activity in day.activities.all %}
+                    {% for activity in day.activities %}
                     <div class="activity-item">
                         <div class="activity-time">
                             {% if activity.start_time %}

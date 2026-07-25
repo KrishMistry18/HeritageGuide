@@ -449,6 +449,14 @@ class ItineraryCreateView(FormView):
     template_name = 'itinerary/create_itinerary.html'
     form_class = ItineraryForm
     
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        db = get_db()
+        # Populate the choices for the 'cities' field from the database
+        cities = [(d.id, d.to_dict().get('name')) for d in db.collection('cities').stream()]
+        form.fields['cities'].choices = cities
+        return form
+    
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         db = get_db()
@@ -474,14 +482,84 @@ class ItineraryCreateView(FormView):
         
         db = get_db()
         i_ref = db.collection('itineraries').document()
+        
+        start_date = form.cleaned_data['start_date']
+        end_date = form.cleaned_data['end_date']
+        num_days = (end_date - start_date).days + 1
+        if num_days <= 0:
+            num_days = 1
+            
+        cities = form.cleaned_data['cities'] # list of city IDs
+        interests = form.cleaned_data['interests']
+        
+        # Fetch cities
+        city_docs = []
+        for city_id in cities:
+            doc = db.collection('cities').document(city_id).get()
+            if doc.exists:
+                city_data = doc.to_dict()
+                city_data['id'] = doc.id
+                city_docs.append(city_data)
+                
+        # Fetch attractions
+        attractions_by_city = defaultdict(list)
+        for attr_doc in db.collection('attractions').stream():
+            attr = attr_doc.to_dict()
+            if attr.get('city_id') in cities:
+                attr['id'] = attr_doc.id
+                score = sum(1 for tag in attr.get('interest_tags', []) if tag in interests)
+                attr['_score'] = score
+                attractions_by_city[attr.get('city_id')].append(attr)
+                
+        for city_id in attractions_by_city:
+            attractions_by_city[city_id].sort(key=lambda x: x.get('_score', 0), reverse=True)
+            
+        # Distribute cities over days
+        days_data = []
+        for i in range(num_days):
+            current_date = start_date + datetime.timedelta(days=i)
+            city_index = (i * len(city_docs)) // num_days if len(city_docs) > 0 else 0
+            current_city = city_docs[city_index] if city_docs else None
+            
+            day_dict = {
+                'date': current_date.strftime('%Y-%m-%d'),
+                'city': {'id': current_city['id'], 'name': current_city['name']} if current_city else None,
+                'activities': []
+            }
+            
+            if current_city:
+                city_id = current_city['id']
+                available_attrs = attractions_by_city.get(city_id, [])
+                
+                daily_attrs = []
+                for _ in range(min(2, len(available_attrs))):
+                    daily_attrs.append(available_attrs.pop(0))
+                    
+                start_hour = 10
+                for attr in daily_attrs:
+                    day_dict['activities'].append({
+                        'start_time': f"{start_hour:02d}:00",
+                        'end_time': f"{start_hour + 2:02d}:00",
+                        'attraction': {
+                            'id': attr['id'],
+                            'name': attr.get('name', 'Unknown'),
+                            'info': attr.get('info', '')
+                        }
+                    })
+                    start_hour += 3
+                    
+            days_data.append(day_dict)
+
         i_ref.set({
             'user_email': self.request.user.email,
             'name': form.cleaned_data['name'],
-            'start_date': form.cleaned_data['start_date'].strftime('%Y-%m-%d'),
-            'end_date': form.cleaned_data['end_date'].strftime('%Y-%m-%d'),
+            'start_date': start_date.strftime('%Y-%m-%d'),
+            'end_date': end_date.strftime('%Y-%m-%d'),
             'transportation_type': form.cleaned_data['transportation_type'],
             'total_budget': float(form.cleaned_data['total_budget']) if form.cleaned_data['total_budget'] else 0.0,
-            'interests': form.cleaned_data['interests'],
+            'interests': interests,
+            'cities': city_docs,
+            'days': days_data,
             'created_at': datetime.datetime.now().isoformat()
         })
         return redirect('itinerary_detail', itinerary_id=i_ref.id)
@@ -498,12 +576,37 @@ def itinerary_detail(request, itinerary_id):
     class MockItin:
         def __init__(self, d):
             for k,v in d.items(): setattr(self, k, v)
-    
+            if 'start_date' in d:
+                self.start_date = datetime.datetime.strptime(d['start_date'], '%Y-%m-%d').date()
+            if 'end_date' in d:
+                self.end_date = datetime.datetime.strptime(d['end_date'], '%Y-%m-%d').date()
+
+    class MockDay:
+        def __init__(self, d):
+            for k,v in d.items(): setattr(self, k, v)
+            if 'date' in d:
+                self.date = datetime.datetime.strptime(d['date'], '%Y-%m-%d').date()
+            if 'city' in d and isinstance(d['city'], dict):
+                self.city = type('MockCity', (object,), d['city'])()
+            
+            self.activities = []
+            for a in d.get('activities', []):
+                act = type('MockActivity', (object,), a)()
+                if 'start_time' in a:
+                    act.start_time = datetime.datetime.strptime(a['start_time'], '%H:%M').time()
+                if 'end_time' in a:
+                    act.end_time = datetime.datetime.strptime(a['end_time'], '%H:%M').time()
+                if 'attraction' in a and isinstance(a['attraction'], dict):
+                    act.attraction = type('MockAttraction', (object,), a['attraction'])()
+                self.activities.append(act)
+
+    processed_days = [MockDay(d) for d in itin.get('days', [])]
+    total_activities = sum(len(d.activities) for d in processed_days)
+
     return render(request, 'itinerary/itinerary_detail.html', {
         'itinerary': MockItin(itin),
-        'days_by_city': {},
-        'total_activities': 0,
-        'cities_count': 1,
+        'days': processed_days,
+        'total_activities': total_activities,
     })
 
 # Info redirects
